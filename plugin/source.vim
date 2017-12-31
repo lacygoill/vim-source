@@ -1,3 +1,8 @@
+if exists('g:loaded_source')
+    finish
+endif
+let g:loaded_source = 1
+
 " Command {{{1
 
 "                         ┌─ Source Selection
