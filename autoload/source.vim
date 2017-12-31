@@ -47,7 +47,9 @@ fu! source#op(type, ...) abort
     " the function was invoked via `:SS {nr}`
     if a:0
         try
-            ToggleEditingCommands 0
+            if exists(':ToggleEditingCommands') == 2
+                ToggleEditingCommands 0
+            endif
             exe a:1.'verb source '.tempfile
             "   │
             "   └─ use the verbosity level passed as an argument to `:SS`
@@ -57,7 +59,9 @@ fu! source#op(type, ...) abort
         catch
             return my_lib#catch_error()
         finally
-            ToggleEditingCommands 1
+            if exists(':ToggleEditingCommands') == 2
+                ToggleEditingCommands 1
+            endif
         endtry
     else
         exe 'source '.tempfile
