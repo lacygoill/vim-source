@@ -23,7 +23,7 @@ fu! source#op(type, ...) abort
         let raw_lines = split(@", "\n")
 
     catch
-        return my_lib#catch_error()
+        return lg#catch_error()
 
     finally
         let &cb  = cb_save
@@ -57,7 +57,7 @@ fu! source#op(type, ...) abort
             "   set it to 14 to see things pending in a finally clause
 
         catch
-            return my_lib#catch_error()
+            return lg#catch_error()
         finally
             if exists(':ToggleEditingCommands') == 2
                 ToggleEditingCommands 1
