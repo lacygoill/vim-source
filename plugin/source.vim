@@ -3,6 +3,22 @@ if exists('g:loaded_source')
 endif
 let g:loaded_source = 1
 
+" Warning:{{{
+" When you  press `+sip` to source  a block of code,  you're in operator-pending
+" mode. This means that if your code includes `mode(1)`, it will be evaluated in
+" 'no', not 'n'.
+"
+" Watch:
+"
+"     fu! Func()
+"         echo mode(1)
+"     endfu
+"     call Func()
+"
+" Write this in a file, and source it with `+S`:    'n'
+" Now, source it again with `+sip`:                 'no'
+"}}}
+
 " Command {{{1
 
 "                         ┌─ Source Selection
