@@ -8,7 +8,7 @@ let g:loaded_source = 1
 " mode. This means that if your code includes `mode(1)`, it will be evaluated in
 " 'no', not 'n'.
 "
-" Watch:
+" MWE:
 "
 "     fu! Func()
 "         echo mode(1)
