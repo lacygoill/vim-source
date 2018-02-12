@@ -47,7 +47,7 @@ fu! source#op(type, ...) abort
     " the function was invoked via `:SS {nr}`
     if a:0
         try
-            if exists(':ToggleEditingCommands') == 2
+            if exists(':ToggleEditingCommands') ==# 2
                 ToggleEditingCommands 0
             endif
             exe a:1.'verb source '.tempfile
@@ -59,7 +59,7 @@ fu! source#op(type, ...) abort
         catch
             return lg#catch_error()
         finally
-            if exists(':ToggleEditingCommands') == 2
+            if exists(':ToggleEditingCommands') ==# 2
                 ToggleEditingCommands 1
             endif
         endtry
