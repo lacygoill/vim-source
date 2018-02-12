@@ -7,15 +7,15 @@ fu! source#op(type, ...) abort
         set cb-=unnamed cb-=unnamedplus
         set selection=inclusive
 
-        if a:type ==# 'char'
+        if a:type is# 'char'
             sil norm! `[v`]y
-        elseif a:type ==# 'line'
+        elseif a:type is# 'line'
             sil norm! '[V']y
-        elseif a:type ==# 'block'
+        elseif a:type is# 'block'
             sil exe "norm! `[\<c-v>`]y"
-        elseif a:type ==# 'vis'
+        elseif a:type is# 'vis'
             sil norm! gvy
-        elseif a:type ==# 'Ex'
+        elseif a:type is# 'Ex'
             sil exe a:2.','.a:3.'y'
         else
             return ''
