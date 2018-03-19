@@ -21,10 +21,9 @@ let g:loaded_source = 1
 
 " Command {{{1
 
-"                         ┌─ Source Selection
-"                         │                               ┌─ verbosity level
-"                         │                               │
-com! -bar -nargs=? -range SS call source#op('Ex', !empty(<q-args>) ? <q-args> : 0, <line1>, <line2>)
+"                                                                      ┌─ verbosity level
+"                                                                      │
+com! -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ? <q-args> : 0, <line1>, <line2>)
 
 " Mappings {{{1
 

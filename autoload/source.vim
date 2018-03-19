@@ -44,7 +44,7 @@ fu! source#op(type, ...) abort
     let tempfile  = tempname()
     call writefile(lines, tempfile, 'b')
 
-    " the function was invoked via `:SS {nr}`
+    " the function was invoked via `:SourceSelection {nr}`
     if a:0
         try
             if exists(':ToggleEditingCommands') ==# 2
@@ -52,7 +52,7 @@ fu! source#op(type, ...) abort
             endif
             exe a:1.'verb source '.tempfile
             "   │
-            "   └─ use the verbosity level passed as an argument to `:SS`
+            "   └─ use the verbosity level passed as an argument to `:SourceSelection`
             "   set it to 13 to see when an exception is thrown, discarded, caught, or finished
             "   set it to 14 to see things pending in a finally clause
 
