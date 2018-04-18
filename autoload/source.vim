@@ -45,12 +45,12 @@ fu! source#op(type, ...) abort
     call writefile(lines, tempfile, 'b')
 
     try
-        if a:0 && exists(':ToggleEditingCommands') ==# 2
-            ToggleEditingCommands 0
-        endif
-
         " the function was invoked via the Ex command
         if a:0
+            if exists(':ToggleEditingCommands') ==# 2
+                ToggleEditingCommands 0
+            endif
+
             exe a:1.'verb source '.tempfile
             "   │
             "   └─ use the verbosity level passed as an argument to `:SourceSelection`
