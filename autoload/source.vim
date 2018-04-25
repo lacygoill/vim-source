@@ -39,8 +39,8 @@ fu! source#op(type, ...) abort
     " (trigger completion).
     "
     " So, instead, we dump it in a temporary file and source the latter.
-    let lines     = filter(raw_lines, { i,v -> v !~# '[\u21d4\u2192\u2502\u2514\u250c]\|^[\u21a3\u21a2]' })
-    let lines     = map(raw_lines, { i,v -> substitute(v, '[\u2718\u2714\u250a].*', '', '') })
+    let lines     = filter(raw_lines, { i,v -> v !~# '[⇔→│└┌]\|^[↣↢]' })
+    let lines     = map(raw_lines, { i,v -> substitute(v, '[✘✔┊].*', '', '') })
     let tempfile  = tempname()
     call writefile(lines, tempfile, 'b')
 
