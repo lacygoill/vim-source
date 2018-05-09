@@ -53,6 +53,10 @@ fu! source#fix_selection() abort "{{{1
     " The qf window is automatically opened.
     " Press `j`: the cursor moves on a line far below the original one.
     " I don't know why. But pressing Esc fixes the issue.
+    "
+    " Update:
+    " It's due to some other autocmd.
+    " Because if you prefix `:so` with `:noa`, the issue disappears.
     "}}}
     call timer_start(0, {-> execute('so '.tempfile.' | echo "" | norm! '."\e", '')})
 endfu
