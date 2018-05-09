@@ -40,7 +40,21 @@ fu! source#fix_selection() abort "{{{1
     " So, there'll be an error message.
     " We don't want to see it; hence the `:echo`.
     "}}}
-    call timer_start(0, {-> execute('so '.tempfile.' | echo ""', '')})
+    " Why `norm! \e`?{{{
+    "
+    " Visually select this:
+    "
+    "     let qfl = getqflist({ 'lines': systemlist('find /etc/ -name "*.conf" -type f'),
+    "     \                     'efm':   '%f'})
+    "     call setqflist(get(qfl, 'items', []))
+    "     cw
+    "
+    " Execute `:@*`.
+    " The qf window is automatically opened.
+    " Press `j`: the cursor moves on a line far below the original one.
+    " I don't know why. But pressing Esc fixes the issue.
+    "}}}
+    call timer_start(0, {-> execute('so '.tempfile.' | echo "" | norm! '."\e", '')})
 endfu
 
 fu! source#op(type, ...) abort "{{{1
