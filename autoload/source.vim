@@ -1,46 +1,10 @@
 fu! source#fix_selection() abort "{{{1
     let tempfile = tempname()
     call writefile(split(@*, '\n'), tempfile)
-
-    " We've already “fixed” the selection, by writing it in a file, so why removing the continuation lines?{{{
-    "
-    " Continuation lines cause several errors, and a hit-enter prompt.
-    " Even though our file is correctly sourced, the prompt is distracting.
-    "}}}
-    let @* = substitute(@*, '\n\s*\\', '', 'g')
-    " You could also perform other substitutions, if needed in the future:{{{
-    "
-    " remove <sid>
-    "     let @* = substitute(@*, '\%(<sid>\)\(\a\)', '\u\1', 'g')
-    " remove script-local scope for functions
-    "     let @* = substitute(@*, 'fu\%[nction]!\=\s\+\zss:\(\a\)', '\u\1', 'g')
-    "}}}
-
-    " Why a timer?{{{
-    "
-    " To prevent `E81`.
-    "
-    " For some reason,  if the selection contains the string  `<sid>`, it is not
-    " translated in the mapping table.
-    " Maybe because  when `CmdlineLeave` is  fired, we're in a  special context,
-    " which prevents us from being in the context of a script.
-    " Anyway, delaying the sourcing fixes the issue.
-    "}}}
-    " Why `:echo`?{{{
-    "
-    " The autocmd does NOT alter or prevent the execution of `@*`.
-    " It will still be broken and executed.
-    " From `:h CmdlineLeave`:
-    "
-    "     When the commands result in an error the
-    "     command line is still executed.
-    "
-    " We can only start a new, fixed, command afterwards.
-    "
-    " So, there'll be an error message.
-    " We don't want to see it; hence the `:echo`.
-    "}}}
-    call timer_start(0, {-> execute('so '.tempfile.' | echo ""')})
+    let star_save = [getreg('*'), getregtype('*')]
+    let @* = ''
+    call timer_start(0, {-> execute('so '.tempfile)
+                        \ + setreg('*', star_save[0], star_save[1])})
 endfu
 
 fu! source#op(type, ...) abort "{{{1
