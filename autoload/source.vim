@@ -10,7 +10,7 @@ endfu
 fu! source#op(type, ...) abort "{{{1
     let cb_save  = &cb
     let sel_save = &selection
-    let reg_save = [ '"', getreg('"'), getregtype('"') ]
+    let reg_save = ['"', getreg('"'), getregtype('"')]
 
     try
         set cb-=unnamed cb-=unnamedplus
