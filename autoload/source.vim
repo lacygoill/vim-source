@@ -1,10 +1,17 @@
 fu! source#fix_selection() abort "{{{1
     let tempfile = tempname()
     call writefile(split(@*, '\n'), tempfile)
-    let star_save = [getreg('*'), getregtype('*')]
+    let s:star_save = [getreg('*'), getregtype('*')]
     let @* = ''
-    call timer_start(0, {-> execute('so '.tempfile)
-                        \ + setreg('*', star_save[0], star_save[1])})
+    call timer_start(0, {-> execute('so '.tempfile)})
+
+    augroup my_restore_selection
+        au!
+        au CmdlineLeave * call setreg('*', s:star_save[0], s:star_save[1])
+            \ | unlet! s:star_save
+            \ | au! my_restore_selection
+            \ | aug! my_restore_selection
+    augroup END
 endfu
 
 fu! source#op(type, ...) abort "{{{1
