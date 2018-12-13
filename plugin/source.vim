@@ -6,7 +6,7 @@ let g:loaded_source = 1
 " Autocmd {{{1
 
 " If  you try  to source  some code  visually  selected in  a buffer  or in  the
-" web  browser, by  executing  `@*` on  the  command line,  and  if it  contains
+" web  browser, by  executing  `@*` on  the  command-line,  and  if it  contains
 " continuation lines, `<sid>` or `s:`, it will fail.
 "
 " To fix this, we write the selection in a file and source the latter.
