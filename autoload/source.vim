@@ -55,7 +55,7 @@ fu! source#op(type, ...) abort "{{{1
     " (trigger completion).
     "
     " So, instead, we dump it in a temporary file and source the latter.
-    let lines    = filter(raw_lines, {i,v -> v !~# '\~$\|[⇔→│└┌]\|^[↣↢]\|^\s*^\+\s*$'})
+    let lines    = filter(raw_lines, {i,v -> v !~# '\~$\|[⇔→│└┌]\|^[↣↢]\|^\s*[v^ \t]$'})
     let lines    = map(raw_lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
     let tempfile = tempname()
     call writefile(lines, tempfile, 'b')
