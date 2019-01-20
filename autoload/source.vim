@@ -9,8 +9,7 @@ fu! source#fix_selection() abort "{{{1
         au!
         au CmdlineLeave * call setreg('*', s:star_save[0], s:star_save[1])
             \ | unlet! s:star_save
-            \ | exe 'au! my_restore_selection'
-            \ | aug! my_restore_selection
+        au CmdlineLeave * exe 'au! my_restore_selection' | aug! my_restore_selection
     augroup END
 endfu
 
