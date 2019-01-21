@@ -66,14 +66,19 @@ fu! source#op(type, ...) abort "{{{1
                 ToggleEditingCommands 0
             endif
 
-            exe a:1.'verb source '.tempfile
-            "   │
-            "   └─ use the verbosity level passed as an argument to `:SourceSelection`
+            let cmd = a:1.'verb source '.tempfile
+            "         │
+            "         └ use the verbosity level passed as an argument to `:SourceSelection`
 
         " the function was invoked via the mapping
         else
-            exe 'source '.tempfile
+            let cmd = 'source '.tempfile
         endif
+
+        " save the output  in register `o` so we can  directly paste it wherever
+        " we want; but remove the first newline before
+        let @o = execute(cmd)[1:]
+        exe cmd
 
     catch
         return lg#catch_error()
