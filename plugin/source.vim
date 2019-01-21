@@ -41,6 +41,17 @@ com! -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) 
 " Now, source it again with `+sip`:                 'no'
 "}}}
 
+" FIXME: `+s` is unable to print 2 or more messages; only the last one is kept:{{{
+"
+"     " uncomment the next line, and press `+ss`
+"     echo 'foo' | echo 'bar'
+"
+" It seems impossible to echo several messages from an opfunc (or an autocmd, or
+" a timer...).
+" For more info, read our notes about mappings, and:
+"
+" https://github.com/lervag/vimtex/pull/1247
+"}}}
 nno  <silent><unique>  +S  :<c-u>sil! update<bar>source %<cr>
 nno  <silent><unique>  +s  :<c-u>sil! update<bar>set opfunc=source#op<cr>g@
 " Why do we add the current line to the history?
