@@ -77,6 +77,9 @@ fu! source#op(type, ...) abort "{{{1
             let cmd = 'source '.tempfile
         endif
 
+        " Flush any delayed screen updates before running `cmd`.
+        " See `:h :echo-redraw`.
+        redraw
         " save the output  in register `o` so we can  directly paste it wherever
         " we want; but remove the first newline before
         let @o = execute(cmd, '')[1:]
