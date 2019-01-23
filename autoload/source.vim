@@ -100,6 +100,7 @@ fu! source#op(type, ...) abort "{{{1
         "}}}
 
     catch
+        let @o = substitute(v:exception, '^Vim(.\{-}):', '', '')
         return lg#catch_error()
     finally
         if a:0 && exists(':ToggleEditingCommands') ==# 2
