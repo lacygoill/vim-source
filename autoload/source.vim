@@ -82,7 +82,7 @@ fu! source#op(type, ...) abort "{{{1
         let @o = execute(cmd, '')[1:]
         " Don't run `:exe cmd`!{{{
         "
-        " If you do, the code will be run twice.
+        " If you do, the code will be run twice (because you've just run `execute()`).
         " But if the code is not idempotent, the printed result may seem unexpected.
         " MWE:
         "
