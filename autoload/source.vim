@@ -56,9 +56,7 @@ fu! source#op(type, ...) abort "{{{1
     " So, instead, we dump it in a temporary file and source the latter.
     let lines    = filter(raw_lines, {i,v -> v !~# '\~$\|[⇔→│└┌]\|^[↣↢]\|^\s*[v^ \t]$'})
     let lines    = map(raw_lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
-    let g:d_lines    = get(g:, 'd_lines', []) + [deepcopy(lines)]
     let tempfile = tempname()
-    let g:d_tempfile = get(g:, 'd_tempfile', []) + [deepcopy(tempfile)]
     call writefile(lines, tempfile, 'b')
 
     try
