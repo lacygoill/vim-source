@@ -13,6 +13,26 @@ fu! source#fix_selection() abort "{{{1
     augroup END
 endfu
 
+fu! source#fix_shell_cmd() abort "{{{1
+    " remove a possible dollar sign in front of the command
+    let pat = '^\%(\s*\n\)*\s*\zs\$'
+    let lnum = search(pat)
+    if lnum
+        let text = substitute(getline(lnum), '^\s*\zs\$', '', '')
+        call setline(lnum, text)
+    endif
+
+    " remove possible indentation in front of `EOF`
+    let pat = '\C^\%(\s*EOF\)\n'
+    let lnum = search(pat)
+    let line = getline(lnum)
+    let indent = matchstr(line, '^\s*')
+    let range = '1/<<.*EOF/;/EOF/'
+    if !empty(indent)
+        sil exe range.'s/'.indent.'//e'
+    endif
+endfu
+
 fu! source#op(type, ...) abort "{{{1
     let cb_save  = &cb
     let sel_save = &selection
@@ -35,7 +55,7 @@ fu! source#op(type, ...) abort "{{{1
         else
             return ''
         endif
-        let raw_lines = split(@", "\n")
+        let lines = split(@", "\n")
 
     catch
         return lg#catch_error()
@@ -46,19 +66,24 @@ fu! source#op(type, ...) abort "{{{1
         call call('setreg', reg_save)
     endtry
 
-    " We don't source the code by simply dumping it on the command-line:
-    "
-    "     :so @"
-    "
-    " It wouldn't work when the code contains continuation lines, or tabs
-    " (trigger completion).
-    "
-    " So, instead, we dump it in a temporary file and source the latter.
-    let lines    = filter(raw_lines, {i,v -> v !~# '\~$\|[⇔→│└┌]\|^[↣↢]\|^\s*[v^ \t]$'})
-    let lines    = map(raw_lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
+    call filter(lines, {i,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
+    call map(lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
     let tempfile = tempname()
     call writefile(lines, tempfile, 'b')
 
+    " we're sourcing a shell command
+    let prompt = matchstr(lines[0], '^\s*\zs\%(\$\|%\)\ze\s')
+    if prompt isnot# ''
+        exe 'sp '.tempfile
+        call source#fix_shell_cmd()
+        sil update
+        close
+        let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
+        echo @o
+        return
+    endif
+
+    " we're sourcing a vimL command
     try
         " the function was invoked via the Ex command
         if a:0
