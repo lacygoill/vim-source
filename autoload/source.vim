@@ -66,6 +66,10 @@ fu! source#op(type, ...) abort "{{{1
         call call('setreg', reg_save)
     endtry
 
+    if empty(lines)
+        return
+    endif
+
     call filter(lines, {i,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
     call map(lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
     let tempfile = tempname()
