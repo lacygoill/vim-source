@@ -20,16 +20,14 @@ fu! source#fix_shell_cmd() abort "{{{1
     if lnum
         let text = substitute(getline(lnum), '^\s*\zs\$', '', '')
         call setline(lnum, text)
-    else
-        return 1
     endif
 
     " remove possible indentation in front of `EOF`
-    let pat = '\C^\%(\s*EOF\)\n'
+    let pat = '\C^\%(\s*EOF\)\n\='
     let lnum = search(pat)
     let line = getline(lnum)
     let indent = matchstr(line, '^\s*')
-    let range = '1/<<.*EOF/;/EOF/'
+    let range = '1/<<.*EOF/;/^\s*EOF/'
     if !empty(indent)
         sil exe range.'s/'.indent.'//e'
     endif
@@ -71,19 +69,13 @@ fu! source#op(type, ...) abort "{{{1
     call filter(lines, {i,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
     call map(lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
     let tempfile = tempname()
-    call writefile(lines, tempfile, 'b')
+    call writefile([''] + lines, tempfile, 'b')
 
     " we're sourcing a shell command
     let prompt = matchstr(lines[0], '^\s*\zs\%(\$\|%\)\ze\s')
     if prompt isnot# ''
         exe 'sp '.tempfile
-        let g = 0
-        " We use `:while` because we could  be sourcing a block of several shell
-        " commands. In this case, we need to  remove the dollar sign in front of
-        " each command.
-        while !source#fix_shell_cmd() && g < 100
-            let g += 1
-        endwhile
+        call source#fix_shell_cmd()
         sil update
         close
         let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
