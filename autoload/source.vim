@@ -82,7 +82,7 @@ fu! source#op(type, ...) abort "{{{1
         call source#fix_shell_cmd()
         sil update
         close
-        let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
+        sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
         let @o = substitute(@o, '\n$', '', '')
         echo @o
         return
