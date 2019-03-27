@@ -72,6 +72,27 @@ fu! source#op(type, ...) abort "{{{1
 
     call filter(lines, {i,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
     call map(lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
+    let initial_indent = strlen(matchstr(lines[0], '^\s*'))
+    " Why?{{{
+    "
+    " Here's the output of a sed command in the shell:
+    "
+    "     $ sed 's/\t/\
+    "     /2' <<<'Column1	Column2	Column3	Column4'
+    "     Column1	Column2~
+    "     Column3	Column4~
+    "
+    " Here's the output of the same command when sourced with our plugin:
+    "
+    "     $ sed 's/\t/\
+    "     /2' <<<'Column1	Column2	Column3	Column4'
+    "     Column1 Column2~
+    "         Column3     Column4~
+    "
+    " The indentation of the second line alters the output.
+    " We must remove it to get the same result as in the shell.
+    "}}}
+    call map(lines, {i,v -> substitute(v, '^\s\{'.initial_indent.'}', '', '')})
     let tempfile = tempname()
     call writefile([''] + lines, tempfile, 'b')
 
