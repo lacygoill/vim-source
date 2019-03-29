@@ -104,7 +104,6 @@ fu! source#op(type, ...) abort "{{{1
         sil update
         close
         sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
-        let @o = substitute(@o, '\n$', '', '')
         echo @o
         return
     endif
