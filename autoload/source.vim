@@ -5,12 +5,8 @@ fu! source#fix_selection() abort "{{{1
     let @* = ''
     call timer_start(0, {-> execute('so '.tempfile)})
 
-    augroup my_restore_selection
-        au!
-        au CmdlineLeave * sil! call setreg('*', s:star_save[0], s:star_save[1])
-            \ | unlet! s:star_save
-            \ | exe 'au! my_restore_selection' | aug! my_restore_selection
-    augroup END
+    au CmdlineLeave * ++once sil! call setreg('*', s:star_save[0], s:star_save[1])
+        \ | unlet! s:star_save
 endfu
 
 fu! source#fix_shell_cmd() abort "{{{1
