@@ -66,8 +66,8 @@ fu! source#op(type, ...) abort "{{{1
         return
     endif
 
-    call filter(lines, {i,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
-    call map(lines, {i,v -> substitute(v, '[✘✔┊].*', '', '')})
+    call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
+    call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
     let initial_indent = strlen(matchstr(lines[0], '^\s*'))
     " Why?{{{
     "
@@ -88,7 +88,7 @@ fu! source#op(type, ...) abort "{{{1
     " The indentation of the second line alters the output.
     " We must remove it to get the same result as in the shell.
     "}}}
-    call map(lines, {i,v -> substitute(v, '^\s\{'.initial_indent.'}', '', '')})
+    call map(lines, {_,v -> substitute(v, '^\s\{'.initial_indent.'}', '', '')})
     let tempfile = tempname()
     call writefile([''] + lines, tempfile, 'b')
 
