@@ -98,7 +98,7 @@ fu! source#op(type, ...) abort "{{{1
         exe 'sp '.tempfile
         call source#fix_shell_cmd()
         sil update
-        close
+        q
         sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
         echo @o
         return
