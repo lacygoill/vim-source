@@ -1,34 +1,3 @@
-fu! source#fix_selection() abort "{{{1
-    let tempfile = tempname()
-    call writefile(split(@*, '\n'), tempfile)
-    let s:star_save = [getreg('*'), getregtype('*')]
-    let @* = ''
-    call timer_start(0, {-> execute('so '.tempfile)})
-
-    au CmdlineLeave * ++once sil! call setreg('*', s:star_save[0], s:star_save[1])
-        \ | unlet! s:star_save
-endfu
-
-fu! source#fix_shell_cmd() abort "{{{1
-    " remove a possible dollar sign in front of the command
-    let pat = '^\%(\s*\n\)*\s*\zs\$'
-    let lnum = search(pat)
-    if lnum
-        let text = substitute(getline(lnum), '^\s*\zs\$', '', '')
-        call setline(lnum, text)
-    endif
-
-    " remove possible indentation in front of `EOF`
-    let pat = '\C^\%(\s*EOF\)\n\='
-    let lnum = search(pat)
-    let line = getline(lnum)
-    let indent = matchstr(line, '^\s*')
-    let range = '1/<<.*EOF/;/^\s*EOF/'
-    if !empty(indent)
-        sil exe range.'s/'.indent.'//e'
-    endif
-endfu
-
 fu! source#op(type, ...) abort "{{{1
     let cb_save  = &cb
     let sel_save = &selection
@@ -47,7 +16,7 @@ fu! source#op(type, ...) abort "{{{1
         elseif a:type is# 'vis'
             sil norm! gvy
         elseif a:type is# 'Ex'
-            sil exe a:2.','.a:3.'y'
+            sil exe a:2..','..a:3..'y'
         else
             return ''
         endif
@@ -88,18 +57,22 @@ fu! source#op(type, ...) abort "{{{1
     " The indentation of the second line alters the output.
     " We must remove it to get the same result as in the shell.
     "}}}
-    call map(lines, {_,v -> substitute(v, '^\s\{'.initial_indent.'}', '', '')})
+    call map(lines, {_,v -> substitute(v, '^\s\{'..initial_indent..'}', '', '')})
     let tempfile = tempname()
     call writefile([''] + lines, tempfile, 'b')
 
     " we're sourcing a shell command
     let prompt = matchstr(lines[0], '^\s*\zs\%(\$\|%\)\ze\s')
-    if prompt isnot# ''
-        exe 'sp '.tempfile
+    if prompt isnot# '' || s:is_in_embedded_shell_code_block()
+        exe 'sp '..tempfile
         call source#fix_shell_cmd()
         sil update
         q
-        sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt] . ' ' . tempfile)
+        if prompt isnot# ''
+            sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt]..' '..tempfile)
+        else
+            sil let @o = system('bash '..tempfile)
+        endif
         echo @o
         return
     endif
@@ -112,13 +85,13 @@ fu! source#op(type, ...) abort "{{{1
                 ToggleEditingCommands 0
             endif
 
-            let cmd = a:1.'verb source '.tempfile
+            let cmd = a:1..'verb source '..tempfile
             "         │
             "         └ use the verbosity level passed as an argument to `:SourceSelection`
 
         " the function was invoked via the mapping
         else
-            let cmd = 'source '.tempfile
+            let cmd = 'source '..tempfile
         endif
 
         " Flush any delayed screen updates before running `cmd`.
@@ -151,5 +124,41 @@ fu! source#op(type, ...) abort "{{{1
             ToggleEditingCommands 1
         endif
     endtry
+endfu
+
+fu! source#fix_shell_cmd() abort "{{{1
+    " remove a possible dollar sign in front of the command
+    let pat = '^\%(\s*\n\)*\s*\zs\$'
+    let lnum = search(pat)
+    if lnum
+        let text = substitute(getline(lnum), '^\s*\zs\$', '', '')
+        call setline(lnum, text)
+    endif
+
+    " remove possible indentation in front of `EOF`
+    let pat = '\C^\%(\s*EOF\)\n\='
+    let lnum = search(pat)
+    let line = getline(lnum)
+    let indent = matchstr(line, '^\s*')
+    let range = '1/<<.*EOF/;/^\s*EOF/'
+    if !empty(indent)
+        sil exe range..'s/'..indent..'//e'
+    endif
+endfu
+
+fu! s:is_in_embedded_shell_code_block() abort "{{{1
+    let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
+    return get(synstack, 0, '') =~# '^markdownEmbedz\=sh$'
+endfu
+
+fu! source#fix_selection() abort "{{{1
+    let tempfile = tempname()
+    call writefile(split(@*, '\n'), tempfile)
+    let s:star_save = [getreg('*'), getregtype('*')]
+    let @* = ''
+    call timer_start(0, {-> execute('so '..tempfile)})
+
+    au CmdlineLeave * ++once sil! call setreg('*', s:star_save[0], s:star_save[1])
+        \ | unlet! s:star_save
 endfu
 
