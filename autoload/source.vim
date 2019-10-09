@@ -81,7 +81,7 @@ fu! source#op(type, ...) abort "{{{1
     try
         " the function was invoked via the Ex command
         if a:0
-            if exists(':ToggleEditingCommands') ==# 2
+            if exists(':ToggleEditingCommands') == 2
                 ToggleEditingCommands 0
             endif
 
@@ -120,7 +120,7 @@ fu! source#op(type, ...) abort "{{{1
         let @o = substitute(v:exception, '^Vim(.\{-}):', '', '')
         return lg#catch_error()
     finally
-        if a:0 && exists(':ToggleEditingCommands') ==# 2
+        if a:0 && exists(':ToggleEditingCommands') == 2
             ToggleEditingCommands 1
         endif
     endtry

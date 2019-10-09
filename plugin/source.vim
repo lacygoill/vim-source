@@ -58,7 +58,7 @@ nno  <silent><unique>  +s  :<c-u>sil! update<bar>set opfunc=source#op<cr>g@
 " To be able to insert its output into the buffer with `C-r X`.
 nno  <silent><unique>  +ss  :<c-u>sil! update<bar>set opfunc=source#op
                            \ <bar>exe 'norm! '..v:count1..'g@_'
-                           \ <bar>if line("'[") ==# line("']") <bar> call histadd(':', getline('.')) <bar> endif<cr>
+                           \ <bar>if line("'[") == line("']") <bar> call histadd(':', getline('.')) <bar> endif<cr>
 xno  <silent><unique>  +s   :<c-u>sil! update<bar>call source#op('vis')<cr>
 
 " Typo:
