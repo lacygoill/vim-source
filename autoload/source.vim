@@ -1,4 +1,4 @@
-fu! source#op(type, ...) abort "{{{1
+fu source#op(type, ...) abort "{{{1
     let cb_save  = &cb
     let sel_save = &selection
     let reg_save = ['"', getreg('"'), getregtype('"')]
@@ -126,7 +126,7 @@ fu! source#op(type, ...) abort "{{{1
     endtry
 endfu
 
-fu! source#fix_shell_cmd() abort "{{{1
+fu source#fix_shell_cmd() abort "{{{1
     " remove a possible dollar sign in front of the command
     let pat = '^\%(\s*\n\)*\s*\zs\$'
     let lnum = search(pat)
@@ -146,12 +146,12 @@ fu! source#fix_shell_cmd() abort "{{{1
     endif
 endfu
 
-fu! s:is_in_embedded_shell_code_block() abort "{{{1
+fu s:is_in_embedded_shell_code_block() abort "{{{1
     let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
     return get(synstack, 0, '') =~# '^markdownEmbedz\=sh$'
 endfu
 
-fu! source#fix_selection() abort "{{{1
+fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
     call writefile(split(@*, '\n'), tempfile)
     let s:star_save = [getreg('*'), getregtype('*')]

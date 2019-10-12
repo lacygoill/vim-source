@@ -19,9 +19,9 @@ augroup END
 
 " Command {{{1
 
-"                                                                      ┌ verbosity level
-"                                                                      │
-com! -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ? <q-args> : 0, <line1>, <line2>)
+"                                                                     ┌ verbosity level
+"                                                                     │
+com -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ? <q-args> : 0, <line1>, <line2>)
 
 " Mappings {{{1
 
@@ -32,7 +32,7 @@ com! -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) 
 "
 " MWE:
 "
-"     fu! Func()
+"     fu Func()
 "         echo mode(1)
 "     endfu
 "     call Func()
