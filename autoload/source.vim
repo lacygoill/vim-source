@@ -31,23 +31,21 @@ fu source#op(type, ...) abort "{{{1
         call call('setreg', reg_save)
     endtry
 
-    if empty(lines)
-        return
-    endif
+    if empty(lines) | return | endif
 
     call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
     call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
     let initial_indent = strlen(matchstr(lines[0], '^\s*'))
     " Why?{{{
     "
-    " Here's the output of a sed command in the shell:
+    " Here is the output of a sed command in the shell:
     "
     "     $ sed 's/\t/\
     "     /2' <<<'Column1	Column2	Column3	Column4'
     "     Column1	Column2~
     "     Column3	Column4~
     "
-    " Here's the output of the same command when sourced with our plugin:
+    " Here is the output of the same command when sourced with our plugin:
     "
     "     $ sed 's/\t/\
     "     /2' <<<'Column1	Column2	Column3	Column4'
@@ -56,6 +54,37 @@ fu source#op(type, ...) abort "{{{1
     "
     " The indentation of the second line alters the output.
     " We must remove it to get the same result as in the shell.
+    "}}}
+    " Warning:{{{
+    "
+    " This can alter the result of a heredoc assignment.
+    "
+    " MWE:
+    "
+    "         let a =<< END
+    "         xx
+    "     END
+    "     echo a
+    "
+    " If you run `:so%`, the output will be:
+    "
+    "     ['    xx']
+    "       ^^^^
+    "
+    " If you press `+sip`, the output will be:
+    "
+    "     ['xx']
+    "
+    " In practice, I doubt it will be an issue because I think we'll always use `trim`:
+    "
+    "                   vvvv
+    "         let a =<< trim END
+    "         xx
+    "     END
+    "     echo a
+    "
+    " For the rare cases where we don't, we'll still 
+    " And in that case, the output between `:so%` and `+sip` will be identical.
     "}}}
     call map(lines, {_,v -> substitute(v, '^\s\{'..initial_indent..'}', '', '')})
     let tempfile = tempname()
@@ -127,11 +156,12 @@ fu source#op(type, ...) abort "{{{1
 endfu
 
 fu source#fix_shell_cmd() abort "{{{1
+    let pos = getcurpos()
     " remove a possible dollar sign in front of the command
-    let pat = '^\%(\s*\n\)*\s*\zs\$'
+    let pat = '^\%(\s*\n\)*\s*\zs\$\s\+'
     let lnum = search(pat)
     if lnum
-        let text = substitute(getline(lnum), '^\s*\zs\$', '', '')
+        let text = substitute(getline(lnum), '^\s*\zs\$\s\+', '', '')
         call setline(lnum, text)
     endif
 
@@ -144,6 +174,7 @@ fu source#fix_shell_cmd() abort "{{{1
     if !empty(indent)
         sil exe range..'s/'..indent..'//e'
     endif
+    call setpos('.', pos)
 endfu
 
 fu s:is_in_embedded_shell_code_block() abort "{{{1
