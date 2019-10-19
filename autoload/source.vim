@@ -174,6 +174,19 @@ fu source#fix_shell_cmd() abort "{{{1
     if !empty(indent)
         sil exe range..'s/'..indent..'//e'
     endif
+
+    " Purpose:{{{
+    "
+    "     $ C-x C-e
+    "     " press `o` to open a new line
+    "     " insert `ls`
+    "     " press `Esc` and `ZZ`
+    "     # press Enter to run the command
+    "     # press `M-c` to capture the pane contents via the capture-pane command from tmux:
+    "     " notice how `ls(1)` is not visible in the quickfix window
+    "}}}
+    sil! 1,/^\s*$/d_
+
     call setpos('.', pos)
 endfu
 
