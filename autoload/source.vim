@@ -82,9 +82,6 @@ fu source#op(type, ...) abort "{{{1
     "         xx
     "     END
     "     echo a
-    "
-    " For the rare cases where we don't, we'll still 
-    " And in that case, the output between `:so%` and `+sip` will be identical.
     "}}}
     call map(lines, {_,v -> substitute(v, '^\s\{'..initial_indent..'}', '', '')})
     let tempfile = tempname()
