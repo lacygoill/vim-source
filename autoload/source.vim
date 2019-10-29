@@ -168,8 +168,10 @@ fu source#fix_shell_cmd() abort "{{{1
     let line = getline(lnum)
     let indent = matchstr(line, '^\s*')
     let range = '1/<<.*EOF/;/^\s*EOF/'
+    let mods = 'keepj keepp '
     if !empty(indent)
-        sil exe range..'s/'..indent..'//e'
+        sil exe mods..range..'s/^'..indent..'//e'
+        sil exe mods..''']+s/^'..indent..')/)/e'
     endif
 
     " Purpose:{{{
@@ -182,7 +184,7 @@ fu source#fix_shell_cmd() abort "{{{1
     "     # press `M-c` to capture the pane contents via the capture-pane command from tmux:
     "     " notice how `ls(1)` is not visible in the quickfix window
     "}}}
-    sil! 1,/^\s*$/d_
+    sil! exe mods..'1,/^\s*$/d_'
 
     call setpos('.', pos)
 endfu
