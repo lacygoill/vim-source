@@ -35,6 +35,7 @@ fu source#op(type, ...) abort "{{{1
 
     call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
     call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
+    call map(lines, {_,v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
     let initial_indent = strlen(matchstr(lines[0], '^\s*'))
     " Why?{{{
     "
@@ -184,7 +185,9 @@ fu source#fix_shell_cmd() abort "{{{1
     "     # press `M-c` to capture the pane contents via the capture-pane command from tmux:
     "     " notice how `ls(1)` is not visible in the quickfix window
     "}}}
-    sil! exe mods..'1,/^\s*$/d_'
+    if getline(1) =~# '^\s*$'
+        sil exe mods..'1;/\S/-d_'
+    endif
 
     call setpos('.', pos)
 endfu
