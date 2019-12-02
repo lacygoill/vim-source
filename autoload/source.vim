@@ -89,7 +89,7 @@ fu source#op(type, ...) abort "{{{1
     call writefile([''] + lines, tempfile, 'b')
 
     " we're sourcing a shell command
-    let prompt = matchstr(lines[0], '^\s*\zs\%(\$\|%\)\ze\s')
+    let prompt = matchstr(lines[0], '^\s*\zs[$%]\ze\s')
     if prompt isnot# '' || s:is_in_embedded_shell_code_block()
         exe 'sp '..tempfile
         call source#fix_shell_cmd()
@@ -155,11 +155,11 @@ endfu
 
 fu source#fix_shell_cmd() abort "{{{1
     let pos = getcurpos()
-    " remove a possible dollar sign in front of the command
-    let pat = '^\%(\s*\n\)*\s*\zs\$\s\+'
+    " remove a possible dollar/percent sign in front of the command
+    let pat = '^\%(\s*\n\)*\s*\zs[$%]\s\+'
     let lnum = search(pat)
     if lnum
-        let text = substitute(getline(lnum), '^\s*\zs\$\s\+', '', '')
+        let text = substitute(getline(lnum), '^\s*\zs[$%]\s\+', '', '')
         call setline(lnum, text)
     endif
 
