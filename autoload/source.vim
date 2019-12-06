@@ -199,7 +199,57 @@ endfu
 
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
-    call writefile(split(@*, '\n'), tempfile)
+    if ! has('nvim')
+        let selection = @*
+    else
+        " TODO: In Nvim, why the fuck isn't `@*` updated after we select some text in a Nvim buffer?{{{
+        "
+        " MWE1:
+        "
+        "     $ nvim
+        "     " select the word `hello` in your web browser
+        "     :echo @*
+        "     hello~
+        "     ✔
+        "     :h
+        "     " press `V` to select the first line
+        "     :echo @*
+        "     hello~
+        "     ✘
+        "
+        " MWE2:
+        "
+        "     $ vim
+        "     :h
+        "     V
+        "     Esc
+        "     $ xclip -o
+        "     *help.txt*      For Vim version 8.1.  Last change: 2019 Jul 21~
+        "
+        "     $ nvim
+        "     :h
+        "     V
+        "     Esc
+        "     $ xclip -o
+        "     Error: target STRING not available~
+        "
+        " ---
+        "
+        " I suspect it's a known limitation:
+        "
+        " > ... since nvim  is not the direct owner of  the selection, we cannot
+        " > update the * register on demand as [g]vim does.
+        "
+        " Source: https://github.com/neovim/neovim/pull/3708
+        "
+        " See also: https://github.com/neovim/neovim/issues/4773
+        "}}}
+        let reg_save = [getreg('"'), getregtype('"')]
+        sil norm! gvy
+        let selection = @"
+        call setreg('"', reg_save[0], reg_save[1])
+    endif
+    call writefile(split(selection, '\n'), tempfile)
     let s:star_save = [getreg('*'), getregtype('*')]
     let @* = ''
     call timer_start(0, {_ -> execute('so '..tempfile)})
