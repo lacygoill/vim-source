@@ -252,7 +252,7 @@ fu source#fix_selection() abort "{{{1
     call writefile(split(selection, '\n'), tempfile)
     let s:star_save = [getreg('*'), getregtype('*')]
     let @* = ''
-    call timer_start(0, {_ -> execute('so '..tempfile)})
+    call timer_start(0, {_ -> execute('so '..tempfile, '')})
 
     au CmdlineLeave * ++once sil! call setreg('*', s:star_save[0], s:star_save[1])
         \ | unlet! s:star_save
