@@ -33,7 +33,7 @@ fu source#op(type, ...) abort "{{{1
 
     if empty(lines) | return | endif
 
-    call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*[v^ \t]$'})
+    call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^[v^ \t]*$'})
     call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
     call map(lines, {_,v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
     let initial_indent = strlen(matchstr(lines[0], '^\s*'))
@@ -254,7 +254,7 @@ fu source#fix_selection() abort "{{{1
     let @* = ''
     call timer_start(0, {_ -> execute('so '..tempfile, '')})
 
-    au CmdlineLeave * ++once sil! call setreg('*', s:star_save[0], s:star_save[1])
+    au CmdlineLeave * ++once call setreg('*', s:star_save[0], s:star_save[1])
         \ | unlet! s:star_save
 endfu
 
