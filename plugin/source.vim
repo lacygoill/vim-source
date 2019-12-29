@@ -46,11 +46,8 @@ com -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ?
 "     " uncomment the next line, and press `+ss`
 "     echo 'foo' | echo 'bar'
 "
-" It seems impossible to echo several messages from an opfunc (or an autocmd, or
-" a timer...).
-" For more info, read our notes about mappings, and:
-"
-" https://github.com/lervag/vimtex/pull/1247
+" It seems impossible to echo several messages from an opfunc (or an autocmd, or a timer...).
+" For more info, read our notes about mappings, and: https://github.com/lervag/vimtex/pull/1247
 "}}}
 nno <silent><unique> +S :<c-u>sil! update<bar>source %<cr>
 nno <silent><unique> +s :<c-u>sil! update<bar>set opfunc=source#op<cr>g@
@@ -62,6 +59,5 @@ nno <silent><unique> +ss :<c-u>sil! update<bar>set opfunc=source#op
 xno <silent><unique> +s :<c-u>sil! update<bar>call source#op('vis')<cr>
 
 " Typo:
-" Sometimes I don't  release AlgGr fast enough, so instead  of pressing `+s`, I
-" press `+[`.
+" Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
 nmap +[ +s
