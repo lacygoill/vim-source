@@ -199,7 +199,7 @@ endfu
 
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
-    if ! has('nvim')
+    if !has('nvim')
         let selection = @*
     else
         " TODO: In Nvim, why the fuck isn't `@*` updated after we select some text in a Nvim buffer?{{{
