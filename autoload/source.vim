@@ -223,22 +223,22 @@ fu source#fix_selection() abort "{{{1
         "     :h
         "     V
         "     Esc
-        "     $ xclip -o
+        "     $ xsel -o
         "     *help.txt*      For Vim version 8.1.  Last change: 2019 Jul 21~
         "
         "     $ nvim
         "     :h
         "     V
         "     Esc
-        "     $ xclip -o
-        "     Error: target STRING not available~
+        "     $ xsel -o
+        "     ''~
         "
         " ---
         "
         " I suspect it's a known limitation:
         "
-        " > ... since nvim  is not the direct owner of  the selection, we cannot
-        " > update the * register on demand as [g]vim does.
+        " >     ... since nvim  is not the direct owner of  the selection, we cannot
+        " >     update the * register on demand as [g]vim does.
         "
         " Source: https://github.com/neovim/neovim/pull/3708
         "
