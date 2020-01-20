@@ -194,7 +194,7 @@ endfu
 
 fu s:is_in_embedded_shell_code_block() abort "{{{1
     let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
-    return get(synstack, 0, '') =~# '^markdownEmbedz\=sh$'
+    return get(synstack, 0, '') =~# '^markdownHighlightz\=sh$'
 endfu
 
 fu source#fix_selection() abort "{{{1
