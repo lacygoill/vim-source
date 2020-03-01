@@ -31,9 +31,8 @@ fu source#op(type, ...) abort "{{{1
         call call('setreg', reg_save)
     endtry
 
+    call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
     if empty(lines) | return | endif
-
-    call filter(lines, {_,v -> v !~# '\~$\|[⇔→│─└┘┌┐]\|^[↣↢]\|^[v^ \t]*$'})
     call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
     call map(lines, {_,v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
     let initial_indent = len(matchstr(lines[0], '^\s*'))
