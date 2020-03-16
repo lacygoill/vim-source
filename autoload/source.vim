@@ -23,7 +23,7 @@ fu source#op(type, ...) abort "{{{1
         let lines = split(@", "\n")
 
     catch
-        return lg#catch_error()
+        return lg#catch()
 
     finally
         let &cb  = cb_save
@@ -144,7 +144,7 @@ fu source#op(type, ...) abort "{{{1
 
     catch
         let @o = substitute(v:exception, '^Vim(.\{-}):', '', '')
-        return lg#catch_error()
+        return lg#catch()
     finally
         if a:0 && exists(':ToggleEditingCommands') == 2
             ToggleEditingCommands 1
