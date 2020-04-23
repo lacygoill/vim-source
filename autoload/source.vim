@@ -35,7 +35,7 @@ fu source#op(type, ...) abort "{{{1
     if empty(lines) | return | endif
     call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
     call map(lines, {_,v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
-    let initial_indent = len(matchstr(lines[0], '^\s*'))
+    let initial_indent = strlen(matchstr(lines[0], '^\s*'))
     " Why?{{{
     "
     " Here is the output of a sed command in the shell:
