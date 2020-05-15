@@ -154,6 +154,7 @@ endfu
 
 fu source#fix_shell_cmd() abort "{{{1
     let pos = getcurpos()
+
     " remove a possible dollar/percent sign in front of the command
     let pat = '^\%(\s*\n\)*\s*\zs[$%]\s\+'
     let lnum = search(pat)
@@ -174,18 +175,55 @@ fu source#fix_shell_cmd() abort "{{{1
         sil exe mods..''']+s/^'..indent..')/)/e'
     endif
 
-    " Purpose:{{{
+    " Remove empty lines at the top of the buffer.{{{
     "
     "     $ C-x C-e
     "     " press `o` to open a new line
     "     " insert `ls`
     "     " press `Esc` and `ZZ`
     "     # press Enter to run the command
-    "     # press `M-c` to capture the pane contents via the capture-pane command from tmux:
+    "     # press `M-c` to capture the pane contents via the capture-pane command from tmux
     "     " notice how `ls(1)` is not visible in the quickfix window
     "}}}
-    if getline(1) =~# '^\s*$'
-        sil exe mods..'1;/\S/-d_'
+    " Why the autocmd?{{{
+    "
+    " To avoid some weird issue when starting Vim via `C-x C-e`.
+    "
+    "     :let @+ = "\n\x1b[201~\\n\n"
+    "     # start a terminal other than xterm
+    "     # press C-x C-e
+    "     " enter insert mode and press C-S-v
+    "     " keep pressing undo
+    "
+    " Vim keeps undoing new changes indefinitely.
+    "
+    "     :echo undotree()
+    "     E724: variable nested too deep for displaying~
+    "
+    " MWE:
+    "
+    "     vim -Nu NONE \
+    "       +'ino <c-m> <c-g>u<cr>' \
+    "       +'let &t_PE = "\e[201~"' \
+    "       +'au TextChanged * 1;/\S/-d' \
+    "       +'let @+ = "\n\x1b[201~\\n\n"' \
+    "       +startinsert
+    "
+    "     " press:  C-S-v Esc u u u ...
+    "
+    " To  avoid  this,   we  delay  the  deletion  until  we   leave  Vim  (yes,
+    " `BufWinLeave` is fired when we leave Vim and Nvim; but not `WinLeave`).
+    "}}}
+    if !exists('#fix_shellcmd') " no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
+        augroup fix_shellcmd | au!
+            au BufWinLeave <buffer> ++once let s:abuf = str2nr(expand('<abuf>'))
+               "\ find where the buffer is now
+               \ | let s:winid = win_findbuf(s:abuf)
+               "\ make sure we're in its window
+               \ | if empty(s:winid) | exe 'b '..s:abuf | else | call win_gotoid(s:winid[0]) | endif
+               "\ remove empty lines at the top
+               \ | if getline(1) =~# '^\s*$' | keepp 1;/\S/-d_ | update | endif
+        augroup END
     endif
 
     call setpos('.', pos)
