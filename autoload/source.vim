@@ -1,4 +1,10 @@
-fu source#op(type, ...) abort "{{{1
+fu source#op(...) abort "{{{1
+    if !a:0
+        let &opfunc = 'source#op'
+        return 'g@'
+    endif
+    sil! update
+    let type = a:0 == 1 ? a:1 : 'Ex'
     let cb_save  = &cb
     let sel_save = &selection
     let reg_save = ['"', getreg('"'), getregtype('"')]
@@ -7,18 +13,14 @@ fu source#op(type, ...) abort "{{{1
         set cb-=unnamed cb-=unnamedplus
         set selection=inclusive
 
-        if a:type is# 'char'
+        if type is# 'char'
             sil norm! `[v`]y
-        elseif a:type is# 'line'
+        elseif type is# 'line'
             sil norm! '[V']y
-        elseif a:type is# 'block'
+        elseif type is# 'block'
             sil exe "norm! `[\<c-v>`]y"
-        elseif a:type is# 'vis'
-            sil norm! gvy
-        elseif a:type is# 'Ex'
-            sil exe a:2..','..a:3..'y'
-        else
-            return ''
+        elseif type is# 'Ex'
+            sil exe a:1..','..a:2..'y'
         endif
         let lines = split(@", "\n")
 
@@ -92,7 +94,6 @@ fu source#op(type, ...) abort "{{{1
     if prompt isnot# '' || s:is_in_embedded_shell_code_block()
         exe 'sp '..tempfile
         call source#fix_shell_cmd()
-        sil update
         q
         if prompt isnot# ''
             sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt]..' '..tempfile)
@@ -105,13 +106,12 @@ fu source#op(type, ...) abort "{{{1
 
     " we're sourcing a vimL command
     try
-        " the function was invoked via the Ex command
-        if a:0
+        if type is# 'Ex'
             if exists(':ToggleEditingCommands') == 2
                 ToggleEditingCommands 0
             endif
 
-            let cmd = a:1..'verb source '..tempfile
+            let cmd = a:3..'verb source '..tempfile
             "         │
             "         └ use the verbosity level passed as an argument to `:SourceSelection`
 
@@ -142,11 +142,16 @@ fu source#op(type, ...) abort "{{{1
         "     [4, 1, 2, 3]~
         "}}}
 
+        " Add the current  line to the history  to be able to  insert its output
+        " into the buffer with `C-r X`.
+        if type is# 'line' && line("'[") == line("']")
+            call histadd(':', getline('.'))
+        endif
     catch
         let @o = substitute(v:exception, '^Vim(.\{-}):', '', '')
         return lg#catch()
     finally
-        if a:0 && exists(':ToggleEditingCommands') == 2
+        if type is# 'Ex' && exists(':ToggleEditingCommands') == 2
             ToggleEditingCommands 1
         endif
     endtry

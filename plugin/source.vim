@@ -18,9 +18,10 @@ augroup END
 
 " Command {{{1
 
-"                                                                     ┌ verbosity level
-"                                                                     │
-com -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ? <q-args> : 0, <line1>, <line2>)
+com -bar -nargs=? -range SourceSelection call source#op(<line1>, <line2>,
+    \ !empty(<q-args>) ? <q-args> : 0)
+    "  │
+    "  └ verbosity level
 
 " Mappings {{{1
 
@@ -49,13 +50,9 @@ com -bar -nargs=? -range SourceSelection call source#op('Ex', !empty(<q-args>) ?
 " For more info, read our notes about mappings, and: https://github.com/lervag/vimtex/pull/1247
 "}}}
 nno <silent><unique> +S :<c-u>sil! update<bar>source %<cr>
-nno <silent><unique> +s :<c-u>sil! update<bar>set opfunc=source#op<cr>g@
-" Why do we add the current line to the history?
-" To be able to insert its output into the buffer with `C-r X`.
-nno <silent><unique> +ss :<c-u>sil! update<bar>set opfunc=source#op
-                         \ <bar>exe 'norm! '..v:count1..'g@_'
-                         \ <bar>if line("'[") == line("']") <bar> call histadd(':', getline('.')) <bar> endif<cr>
-xno <silent><unique> +s :<c-u>sil! update<bar>call source#op('vis')<cr>
+nno <expr><unique> +s source#op()
+xno <expr><unique> +s source#op()
+nno <expr><unique> +ss source#op()..'_'
 
 " Typo:
 " Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
