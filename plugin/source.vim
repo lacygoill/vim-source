@@ -25,10 +25,9 @@ com -bar -nargs=? -range SourceSelection call source#op(<line1>, <line2>,
 
 " Mappings {{{1
 
-" Warning:{{{
-" When you  press `+sip` to source  a block of code,  you're in operator-pending
-" mode. This means that if your code includes `mode(1)`, it will be evaluated as
-" 'no', not 'n'.
+" Warning: `mode(1)` is `no` when sourcing code with the operator.{{{
+"
+" That's because, at that moment, you're really in operator-pending mode.
 "
 " MWE:
 "
@@ -37,8 +36,13 @@ com -bar -nargs=? -range SourceSelection call source#op(<line1>, <line2>,
 "     endfu
 "     call Func()
 "
-" Write this in a file, and source it with `+S`:    'n'
-" Now, source it again with `+sip`:                 'no'
+" Write this in a file, and source it with `+S`:
+"
+"     n~
+"
+" Now, source it again with `+sip`:
+"
+"     no~
 "}}}
 
 " FIXME: `+s` is unable to print 2 or more messages; only the last one is kept:{{{
@@ -54,6 +58,6 @@ nno <expr><unique> +s source#op()
 xno <expr><unique> +s source#op()
 nno <expr><unique> +ss source#op()..'_'
 
-" Typo:
-" Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
+" Typo: Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
 nmap +[ +s
+
