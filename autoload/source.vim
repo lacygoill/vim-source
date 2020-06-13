@@ -3,7 +3,10 @@ fu source#op(...) abort "{{{1
         let &opfunc = 'source#op'
         return 'g@'
     endif
-    sil! update
+
+    " Warning: If you run `:update`, don't forget `:lockm`.
+    " Otherwise, the change marks would be unexpectedly reset.
+
     let type = a:0 == 1 ? a:1 : 'Ex'
     let cb_save  = &cb
     let sel_save = &selection
@@ -217,7 +220,7 @@ fu source#fix_shell_cmd() abort "{{{1
     "     " press:  C-S-v Esc u u u ...
     "
     " To  avoid  this,   we  delay  the  deletion  until  we   leave  Vim  (yes,
-    " `BufWinLeave` is fired when we leave Vim and Nvim; but not `WinLeave`).
+    " `BufWinLeave` is fired when we leave Vim; but not `WinLeave`).
     "}}}
     if !exists('#fix_shellcmd') " no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
         augroup fix_shellcmd | au!
@@ -241,56 +244,7 @@ endfu
 
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
-    if !has('nvim')
-        let selection = @*
-    else
-        " TODO: In Nvim, why the fuck isn't `@*` updated after we select some text in a Nvim buffer?{{{
-        "
-        " MWE1:
-        "
-        "     $ nvim
-        "     " select the word `hello` in your web browser
-        "     :echo @*
-        "     hello~
-        "     ✔
-        "     :h
-        "     " press `V` to select the first line
-        "     :echo @*
-        "     hello~
-        "     ✘
-        "
-        " MWE2:
-        "
-        "     $ vim
-        "     :h
-        "     V
-        "     Esc
-        "     $ xsel -o
-        "     *help.txt*      For Vim version 8.1.  Last change: 2019 Jul 21~
-        "
-        "     $ nvim
-        "     :h
-        "     V
-        "     Esc
-        "     $ xsel -o
-        "     ''~
-        "
-        " ---
-        "
-        " I suspect it's a known limitation:
-        "
-        " >     ... since nvim  is not the direct owner of  the selection, we cannot
-        " >     update the * register on demand as [g]vim does.
-        "
-        " Source: https://github.com/neovim/neovim/pull/3708
-        "
-        " See also: https://github.com/neovim/neovim/issues/4773
-        "}}}
-        let reg_save = [getreg('"'), getregtype('"')]
-        sil norm! gvy
-        let selection = @"
-        call setreg('"', reg_save[0], reg_save[1])
-    endif
+    let selection = @*
     call writefile(split(selection, '\n'), tempfile)
     let s:star_save = [getreg('*'), getregtype('*')]
     let @* = ''
