@@ -8,13 +8,11 @@ fu source#op(...) abort "{{{1
     " Otherwise, the change marks would be unexpectedly reset.
 
     let type = a:0 == 1 ? a:1 : 'Ex'
-    let cb_save  = &cb
-    let sel_save = &selection
-    let reg_save = ['"', getreg('"'), getregtype('"')]
+    let [cb_save, sel_save]  = [&cb, &sel]
+    let reg_save = getreginfo('"')
 
     try
-        set cb-=unnamed cb-=unnamedplus
-        set selection=inclusive
+        set cb-=unnamed cb-=unnamedplus sel=inclusive
 
         if type is# 'char'
             sil norm! `[v`]y
@@ -31,9 +29,8 @@ fu source#op(...) abort "{{{1
         return lg#catch()
 
     finally
-        let &cb  = cb_save
-        let &sel = sel_save
-        call call('setreg', reg_save)
+        let [&cb, &sel] = [cb_save, sel_save]
+        call setreg('"', reg_save)
     endtry
 
     call filter(lines, {_,v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
@@ -74,7 +71,7 @@ fu source#op(...) abort "{{{1
     " If you run `:so%`, the output will be:
     "
     "     ['    xx']
-    "       ^^^^
+    "       ^--^
     "
     " If you press `+sip`, the output will be:
     "
@@ -82,7 +79,7 @@ fu source#op(...) abort "{{{1
     "
     " In practice, I doubt it will be an issue because I think we'll always use `trim`:
     "
-    "                   vvvv
+    "                   v--v
     "         let a =<< trim END
     "         xx
     "     END
@@ -246,11 +243,10 @@ fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
     let selection = @*
     call writefile(split(selection, '\n'), tempfile)
-    let s:star_save = [getreg('*'), getregtype('*')]
+    let s:star_save = getreginfo('*')
     let @* = ''
     call timer_start(0, {-> execute('so '..tempfile, '')})
 
-    au CmdlineLeave * ++once call setreg('*', s:star_save[0], s:star_save[1])
-        \ | unlet! s:star_save
+    au CmdlineLeave * ++once call setreg('*', s:star_save) | unlet! s:star_save
 endfu
 
