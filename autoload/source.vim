@@ -12,7 +12,7 @@ fu source#op(...) abort "{{{1
     let reg_save = getreginfo('"')
 
     try
-        set cb-=unnamed cb-=unnamedplus sel=inclusive
+        set cb= sel=inclusive
 
         if type is# 'char'
             sil norm! `[v`]y
@@ -96,9 +96,9 @@ fu source#op(...) abort "{{{1
         call source#fix_shell_cmd()
         q
         if prompt isnot# ''
-            sil let @o = system({'$': 'bash', '%': 'zsh'}[prompt]..' '..tempfile)
+            sil call setreg('o', systemlist({'$': 'bash', '%': 'zsh'}[prompt]..' '..tempfile), 'c')
         else
-            sil let @o = system('bash '..tempfile)
+            sil call setreg('o', systemlist('bash '..tempfile), 'c')
         endif
         echo @o
         return
@@ -125,7 +125,7 @@ fu source#op(...) abort "{{{1
         redraw
         " save the output  in register `o` so we can  directly paste it wherever
         " we want; but remove the first newline before
-        let @o = execute(cmd, '')[1:]
+        call setreg('o', [execute(cmd, '')[1:]], 'c')
         " Don't run `:exe cmd`!{{{
         "
         " If you do, the code will be run twice (because you've just run `execute()`).
@@ -148,7 +148,7 @@ fu source#op(...) abort "{{{1
             call histadd(':', getline('.'))
         endif
     catch
-        let @o = substitute(v:exception, '^Vim(.\{-}):', '', '')
+        call setreg('o', [substitute(v:exception, '^Vim(.\{-}):', '', '')], 'c')
         return lg#catch()
     finally
         if type is# 'Ex' && exists(':ToggleEditingCommands') == 2
@@ -241,10 +241,10 @@ endfu
 
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
-    let selection = @*
-    call writefile(split(selection, '\n'), tempfile)
+    let selection = getreg('*', 1, 1)
+    call writefile(selection, tempfile)
     let s:star_save = getreginfo('*')
-    let @* = ''
+    call setreg('*', {})
     call timer_start(0, {-> execute('so '..tempfile, '')})
 
     au CmdlineLeave * ++once call setreg('*', s:star_save) | unlet! s:star_save
