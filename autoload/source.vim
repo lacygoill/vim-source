@@ -1,37 +1,13 @@
-fu source#op(...) abort "{{{1
-    if !a:0
-        let &opfunc = 'source#op'
-        return 'g@'
-    endif
+fu source#op() abort "{{{1
+    let &opfunc = 'lg#opfunc'
+    let g:opfunc_core = 'source#op_core'
+    return 'g@'
+endfu
 
+fu source#op_core(type, ...) abort
     " Warning: If you run `:update`, don't forget `:lockm`.
     " Otherwise, the change marks would be unexpectedly reset.
-
-    let type = a:0 == 1 ? a:1 : 'Ex'
-    let [cb_save, sel_save]  = [&cb, &sel]
-    let reg_save = getreginfo('"')
-
-    try
-        set cb= sel=inclusive
-
-        if type is# 'char'
-            sil norm! `[v`]y
-        elseif type is# 'line'
-            sil norm! '[V']y
-        elseif type is# 'block'
-            sil exe "norm! `[\<c-v>`]y"
-        elseif type is# 'Ex'
-            sil exe a:1..','..a:2..'y'
-        endif
-        let lines = split(@", "\n")
-
-    catch
-        return lg#catch()
-
-    finally
-        let [&cb, &sel] = [cb_save, sel_save]
-        call setreg('"', reg_save)
-    endtry
+    let lines = split(@", "\n")
 
     call filter(lines, {_,v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
     if empty(lines) | return | endif
@@ -106,14 +82,14 @@ fu source#op(...) abort "{{{1
 
     " we're sourcing a vimL command
     try
-        if type is# 'Ex'
+        if a:type is# 'Ex'
             if exists(':ToggleEditingCommands') == 2
                 ToggleEditingCommands 0
             endif
 
-            let cmd = a:3..'verb source '..tempfile
+            let cmd = a:1..'verb source '..tempfile
             "         │
-            "         └ use the verbosity level passed as an argument to `:SourceSelection`
+            "         └ use the verbosity level passed as an argument to `:SourceRange`
 
         " the function was invoked via the mapping
         else
@@ -144,17 +120,37 @@ fu source#op(...) abort "{{{1
 
         " Add the current  line to the history  to be able to  insert its output
         " into the buffer with `C-r X`.
-        if type is# 'line' && line("'[") == line("']")
+        if a:type is# 'line' && line("'[") == line("']")
             call histadd(':', getline('.'))
         endif
     catch
         call setreg('o', [substitute(v:exception, '^Vim(.\{-}):', '', '')], 'c')
         return lg#catch()
     finally
-        if type is# 'Ex' && exists(':ToggleEditingCommands') == 2
+        if a:type is# 'Ex' && exists(':ToggleEditingCommands') == 2
             ToggleEditingCommands 1
         endif
     endtry
+endfu
+
+fu source#range(lnum1, lnum2, verbosity) abort "{{{1
+    let reginfo = getreginfo('"')
+    let cb_save = &cb
+    try
+        set cb=
+        exe a:lnum1..','..a:lnum2..'y'
+        call source#op_core('Ex', a:verbosity)
+    catch
+        return lg#catch()
+    finally
+        let &cb = cb_save
+        call setreg('"', reginfo)
+    endtry
+endfu
+
+fu s:is_in_embedded_shell_code_block() abort "{{{1
+    let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
+    return get(synstack, 0, '') =~# '^markdownHighlightz\=sh$'
 endfu
 
 fu source#fix_shell_cmd() abort "{{{1
@@ -232,11 +228,6 @@ fu source#fix_shell_cmd() abort "{{{1
     endif
 
     call setpos('.', pos)
-endfu
-
-fu s:is_in_embedded_shell_code_block() abort "{{{1
-    let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
-    return get(synstack, 0, '') =~# '^markdownHighlightz\=sh$'
 endfu
 
 fu source#fix_selection() abort "{{{1

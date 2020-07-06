@@ -18,10 +18,7 @@ augroup END
 
 " Command {{{1
 
-com -bar -nargs=? -range SourceSelection call source#op(<line1>, <line2>,
-    \ !empty(<q-args>) ? <q-args> : 0)
-    "  │
-    "  └ verbosity level
+com -bar -nargs=? -range SourceRange call source#range(<line1>, <line2>, !empty(<q-args>) ? <q-args> : 0)
 
 " Mappings {{{1
 
