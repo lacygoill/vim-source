@@ -223,7 +223,7 @@ fu source#fix_shell_cmd() abort "{{{1
                "\ make sure we're in its window
                \ | if empty(s:winid) | exe 'b '..s:abuf | else | call win_gotoid(s:winid[0]) | endif
                "\ remove empty lines at the top
-               \ | if getline(1) =~# '^\s*$' | keepp 1;/\S/-d_ | update | endif
+               \ | if getline(1) =~# '^\s*$' | sil! keepj keepp 1;/\S/-d_ | update | endif
         augroup END
     endif
 
