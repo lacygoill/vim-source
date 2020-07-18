@@ -1,6 +1,8 @@
 fu source#op() abort "{{{1
     let &opfunc = 'lg#opfunc'
-    let g:opfunc_core = 'source#op_core'
+    let g:opfunc = {
+        \ 'core': 'source#op_core',
+        \ }
     return 'g@'
 endfu
 
@@ -203,7 +205,7 @@ fu source#fix_shell_cmd() abort "{{{1
     "
     " MWE:
     "
-    "     vim -Nu NONE \
+    "     $ vim -Nu NONE \
     "       +'ino <c-m> <c-g>u<cr>' \
     "       +'let &t_PE = "\e[201~"' \
     "       +'au TextChanged * 1;/\S/-d' \
