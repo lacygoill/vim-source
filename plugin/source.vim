@@ -12,8 +12,8 @@ let g:loaded_source = 1
 " To fix this, we write the selection in a file and source the latter.
 augroup fix_source_selection | au!
     au CmdlineLeave : if getcmdline() is# '@*'
-    \ |                   call source#fix_selection()
-    \ |               endif
+        \ |     call source#fix_selection()
+        \ | endif
 augroup END
 
 " Command {{{1
@@ -53,7 +53,7 @@ com -bar -nargs=? -range SourceRange call source#range(<line1>, <line2>, !empty(
 nno <silent><unique> +S :<c-u>sil! update<bar>source %<cr>
 nno <expr><unique> +s source#op()
 xno <expr><unique> +s source#op()
-nno <expr><unique> +ss source#op()..'_'
+nno <expr><unique> +ss source#op() .. '_'
 
 " Typo: Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
 nmap +[ +s

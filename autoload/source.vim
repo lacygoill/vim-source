@@ -1,5 +1,8 @@
+import Catch from 'lg.vim'
+import Opfunc from 'lg.vim' | const s:SID = execute('fu s:Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
+
 fu source#op() abort "{{{1
-    let &opfunc = 'lg#opfunc'
+    let &opfunc = s:SID .. 'Opfunc'
     let g:opfunc = {
         \ 'core': 'source#op_core',
         \ }
@@ -11,11 +14,11 @@ fu source#op_core(type, ...) abort
     " Otherwise, the change marks would be unexpectedly reset.
     let lines = split(@", "\n")
 
-    call filter(lines, {_,v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
+    call filter(lines, {_, v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
     if empty(lines) | return | endif
-    call map(lines, {_,v -> substitute(v, '[✘✔┊].*', '', '')})
-    call map(lines, {_,v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
-    let initial_indent = strlen(matchstr(lines[0], '^\s*'))
+    call map(lines, {_, v -> substitute(v, '[✘✔┊].*', '', '')})
+    call map(lines, {_, v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
+    let initial_indent = matchstr(lines[0], '^\s*')->strlen()
     " Why?{{{
     "
     " Here is the output of a sed command in the shell:
@@ -63,20 +66,20 @@ fu source#op_core(type, ...) abort
     "     END
     "     echo a
     "}}}
-    call map(lines, {_,v -> substitute(v, '^\s\{'..initial_indent..'}', '', '')})
+    call map(lines, {_, v -> substitute(v, '^\s\{' .. initial_indent .. '}', '', '')})
     let tempfile = tempname()
     call writefile([''] + lines, tempfile, 'b')
 
     " we're sourcing a shell command
     let prompt = matchstr(lines[0], '^\s*\zs[$%]\ze\s')
-    if prompt isnot# '' || s:is_in_embedded_shell_code_block()
-        exe 'sp '..tempfile
+    if prompt != '' || s:is_in_embedded_shell_code_block()
+        exe 'sp ' .. tempfile
         call source#fix_shell_cmd()
         q
-        if prompt isnot# ''
-            sil call setreg('o', systemlist({'$': 'bash', '%': 'zsh'}[prompt]..' '..tempfile), 'c')
+        if prompt != ''
+            sil call setreg('o', systemlist({'$': 'bash', '%': 'zsh'}[prompt] .. ' ' .. tempfile), 'c')
         else
-            sil call setreg('o', systemlist('bash '..tempfile), 'c')
+            sil call setreg('o', systemlist('bash ' .. tempfile), 'c')
         endif
         echo @o
         return
@@ -89,13 +92,13 @@ fu source#op_core(type, ...) abort
                 ToggleEditingCommands 0
             endif
 
-            let cmd = a:1..'verb source '..tempfile
+            let cmd = a:1 .. 'verb source ' .. tempfile
             "         │
             "         └ use the verbosity level passed as an argument to `:SourceRange`
 
         " the function was invoked via the mapping
         else
-            let cmd = 'source '..tempfile
+            let cmd = 'source ' .. tempfile
         endif
 
         " Flush any delayed screen updates before running `cmd`.
@@ -123,11 +126,11 @@ fu source#op_core(type, ...) abort
         " Add the current  line to the history  to be able to  insert its output
         " into the buffer with `C-r X`.
         if a:type is# 'line' && line("'[") == line("']")
-            call histadd(':', getline('.'))
+            call getline('.')->histadd(':')
         endif
     catch
         call setreg('o', [substitute(v:exception, '^Vim(.\{-}):', '', '')], 'c')
-        return lg#catch()
+        return s:Catch()
     finally
         if a:type is# 'Ex' && exists(':ToggleEditingCommands') == 2
             ToggleEditingCommands 1
@@ -140,10 +143,10 @@ fu source#range(lnum1, lnum2, verbosity) abort "{{{1
     let cb_save = &cb
     try
         set cb=
-        exe a:lnum1..','..a:lnum2..'y'
+        exe a:lnum1 .. ',' .. a:lnum2 .. 'y'
         call source#op_core('Ex', a:verbosity)
     catch
-        return lg#catch()
+        return s:Catch()
     finally
         let &cb = cb_save
         call setreg('"', reginfo)
@@ -151,7 +154,7 @@ fu source#range(lnum1, lnum2, verbosity) abort "{{{1
 endfu
 
 fu s:is_in_embedded_shell_code_block() abort "{{{1
-    let synstack = map(synstack(line('.'), col('.')), {_,v -> synIDattr(v, 'name')})
+    let synstack = synstack('.', col('.'))->map({_, v -> synIDattr(v, 'name')})
     return get(synstack, 0, '') =~# '^markdownHighlightz\=sh$'
 endfu
 
@@ -162,7 +165,7 @@ fu source#fix_shell_cmd() abort "{{{1
     let pat = '^\%(\s*\n\)*\s*\zs[$%]\s\+'
     let lnum = search(pat)
     if lnum
-        let text = substitute(getline(lnum), '^\s*\zs[$%]\s\+', '', '')
+        let text = getline(lnum)->substitute('^\s*\zs[$%]\s\+', '', '')
         call setline(lnum, text)
     endif
 
@@ -174,8 +177,8 @@ fu source#fix_shell_cmd() abort "{{{1
     let range = '1/<<.*EOF/;/^\s*EOF/'
     let mods = 'keepj keepp '
     if !empty(indent)
-        sil exe mods..range..'s/^'..indent..'//e'
-        sil exe mods..''']+s/^'..indent..')/)/e'
+        sil exe mods .. range .. 's/^' .. indent .. '//e'
+        sil exe mods .. ''']+s/^' .. indent .. ')/)/e'
     endif
 
     " Remove empty lines at the top of the buffer.{{{
@@ -219,13 +222,13 @@ fu source#fix_shell_cmd() abort "{{{1
     "}}}
     if !exists('#fix_shellcmd') " no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
         augroup fix_shellcmd | au!
-            au BufWinLeave <buffer> ++once let s:abuf = str2nr(expand('<abuf>'))
-               "\ find where the buffer is now
-               \ | let s:winid = win_findbuf(s:abuf)
-               "\ make sure we're in its window
-               \ | if empty(s:winid) | exe 'b '..s:abuf | else | call win_gotoid(s:winid[0]) | endif
-               "\ remove empty lines at the top
-               \ | if getline(1) =~# '^\s*$' | sil! keepj keepp 1;/\S/-d_ | update | endif
+            au BufWinLeave <buffer> ++once let s:abuf = expand('<abuf>')->str2nr()
+                "\ find where the buffer is now
+                \ | let s:winid = win_findbuf(s:abuf)
+                "\ make sure we're in its window
+                \ | if empty(s:winid) | exe 'b ' .. s:abuf | else | call win_gotoid(s:winid[0]) | endif
+                "\ remove empty lines at the top
+                \ | if getline(1) =~# '^\s*$' | sil! keepj keepp 1;/\S/-d_ | update | endif
         augroup END
     endif
 
@@ -238,7 +241,7 @@ fu source#fix_selection() abort "{{{1
     call writefile(selection, tempfile)
     let s:star_save = getreginfo('*')
     call setreg('*', {})
-    call timer_start(0, {-> execute('so '..tempfile, '')})
+    call timer_start(0, {-> execute('so ' .. tempfile, '')})
 
     au CmdlineLeave * ++once call setreg('*', s:star_save) | unlet! s:star_save
 endfu
