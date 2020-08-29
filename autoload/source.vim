@@ -14,7 +14,7 @@ fu source#op_core(type, ...) abort
     " Otherwise, the change marks would be unexpectedly reset.
     let lines = split(@", "\n")
 
-    call filter(lines, {_, v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%(v\+\|\^\+\)\s*$'})
+    call filter(lines, {_, v -> v !~# '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%([-v]\+\|[-^]\+\)\s*$'})
     if empty(lines) | return | endif
     call map(lines, {_, v -> substitute(v, '[✘✔┊].*', '', '')})
     call map(lines, {_, v -> substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')})
