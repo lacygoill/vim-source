@@ -237,12 +237,22 @@ endfu
 
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
-    let selection = getreg('*', 1, 1)
+    let selection = getreg('*', v:true, v:true)
     call writefile(selection, tempfile)
-    let s:star_save = getreginfo('*')
+    let star_save = getreginfo('*')
     call setreg('*', {})
-    call timer_start(0, {-> execute('so ' .. tempfile, '')})
+    call timer_start(0, function('s:sourcethis', [tempfile, star_save]))
+endfu
 
-    au CmdlineLeave * ++once call setreg('*', s:star_save) | unlet! s:star_save
+fu s:sourcethis(tempfile, star_save, _) abort
+    try
+        exe 'so ' .. a:tempfile
+    catch
+        echohl ErrorMsg
+        echom v:exception
+        echohl NONE
+    finally
+        call setreg('*', a:star_save)
+    endtry
 endfu
 
