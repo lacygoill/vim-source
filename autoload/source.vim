@@ -238,6 +238,8 @@ endfu
 fu source#fix_selection() abort "{{{1
     let tempfile = tempname()
     let selection = getreg('*', v:true, v:true)
+    call map(selection, {_, v -> substitute(v, '^\C\s*com\%[mand]\s', 'command! ', '')})
+    call map(selection, {_, v -> substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', '')})
     call writefile(selection, tempfile)
     let star_save = getreginfo('*')
     call setreg('*', {})
