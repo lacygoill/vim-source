@@ -67,19 +67,22 @@ fu source#op_core(type, ...) abort
     "     echo a
     "}}}
     call map(lines, {_, v -> substitute(v, '^\s\{' .. initial_indent .. '}', '', '')})
-    let tempfile = tempname()
-    call writefile([''] + lines, tempfile, 'b')
+    if exists('s:source_tempfile')
+        sil! call delete(s:source_tempfile)
+    endif
+    let s:source_tempfile = tempname()
+    call writefile([''] + lines, s:source_tempfile, 'b')
 
     " we're sourcing a shell command
     let prompt = matchstr(lines[0], '^\s*\zs[$%]\ze\s')
     if prompt != '' || s:is_in_embedded_shell_code_block()
-        exe 'sp ' .. tempfile
+        exe 'sp ' .. s:source_tempfile
         call source#fix_shell_cmd()
         q
         if prompt != ''
-            sil call setreg('o', systemlist({'$': 'bash', '%': 'zsh'}[prompt] .. ' ' .. tempfile), 'c')
+            sil call setreg('o', systemlist({'$': 'bash', '%': 'zsh'}[prompt] .. ' ' .. s:source_tempfile), 'c')
         else
-            sil call setreg('o', systemlist('bash ' .. tempfile), 'c')
+            sil call setreg('o', systemlist('bash ' .. s:source_tempfile), 'c')
         endif
         echo @o
         return
@@ -92,13 +95,13 @@ fu source#op_core(type, ...) abort
                 ToggleEditingCommands 0
             endif
 
-            let cmd = a:1 .. 'verb source ' .. tempfile
+            let cmd = a:1 .. 'verb source ' .. s:source_tempfile
             "         │
             "         └ use the verbosity level passed as an argument to `:SourceRange`
 
         " the function was invoked via the mapping
         else
-            let cmd = 'source ' .. tempfile
+            let cmd = 'source ' .. s:source_tempfile
         endif
 
         " Flush any delayed screen updates before running `cmd`.
