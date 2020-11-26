@@ -50,7 +50,7 @@ com -bar -nargs=? -range SourceRange call source#range(<line1>, <line2>, !empty(
 " It seems impossible to echo several messages from an opfunc (or an autocmd, or a timer...).
 " For more info, read our notes about mappings, and: https://github.com/lervag/vimtex/pull/1247
 "}}}
-nno <silent><unique> +S :<c-u>sil! update<bar>source %<cr>
+nno <unique> +S <cmd>sil! update<bar>source %<cr>
 nno <expr><unique> +s source#op()
 xno <expr><unique> +s source#op()
 nno <expr><unique> +ss source#op() .. '_'
