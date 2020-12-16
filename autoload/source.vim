@@ -223,8 +223,8 @@ fu source#fix_shell_cmd() abort "{{{1
     " To  avoid  this,   we  delay  the  deletion  until  we   leave  Vim  (yes,
     " `BufWinLeave` is fired when we leave Vim; but not `WinLeave`).
     "}}}
-    if !exists('#fix_shellcmd') " no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
-        augroup fix_shellcmd | au!
+    if !exists('#FixShellcmd') " no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
+        augroup FixShellcmd | au!
             au BufWinLeave <buffer> ++once let s:abuf = expand('<abuf>')->str2nr()
                 "\ find where the buffer is now
                 \ | let s:winid = win_findbuf(s:abuf)

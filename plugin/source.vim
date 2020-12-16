@@ -10,7 +10,7 @@ let g:loaded_source = 1
 " continuation lines, `<sid>` or `s:`, it will fail.
 "
 " To fix this, we write the selection in a file and source the latter.
-augroup fix_source_selection | au!
+augroup FixSourceSelection | au!
     au CmdlineLeave : if getcmdline() is# '@*'
         \ |     call source#fix_selection()
         \ | endif
