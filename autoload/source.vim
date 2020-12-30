@@ -109,7 +109,7 @@ fu source#op_core(type, ...) abort
         redraw
         " save the output  in register `o` so we can  directly paste it wherever
         " we want; but remove the first newline before
-        call setreg('o', [execute(cmd, '')[1:]], 'c')
+        call setreg('o', [execute(cmd, '')[1 :]], 'c')
         " Don't run `:exe cmd`!{{{
         "
         " If you do, the code will be run twice (because you've just run `execute()`).
