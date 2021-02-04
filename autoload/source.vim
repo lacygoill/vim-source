@@ -206,7 +206,7 @@ def source#fixShellCmd() #{{{2
     # remove a possible dollar/percent sign in front of the command
     var pat: string = '^\%(\s*\n\)*\s*\zs[$%]\s\+'
     var lnum: number = search(pat)
-    if lnum != 0
+    if lnum > 0
         var text: string = getline(lnum)->substitute('^\s*\zs[$%]\s\+', '', '')
         setline(lnum, text)
     endif
