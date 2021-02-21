@@ -3,7 +3,10 @@ vim9script noclear
 if exists('loaded') | finish | endif
 var loaded = true
 
-import {Catch, Opfunc} from 'lg.vim'
+import {
+    Catch,
+    Opfunc,
+    } from 'lg.vim'
 const SID: string = execute('fu Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
 
 # Interface {{{1
@@ -14,65 +17,72 @@ def source#op(): string #{{{2
 enddef
 
 def source#opCore(type: string, verbosity = 0)
-    # Warning: If you run `:update`, don't forget `:lockm`.
-    # Otherwise, the change marks would be unexpectedly reset.
-    var lines: list<string> = split(@", "\n")
+# Warning: If you run `:update`, don't forget `:lockm`.
+# Otherwise, the change marks would be unexpectedly reset.
 
-    filter(lines, (_, v) => v !~ '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%([-v]\+\|[-^]\+\)\s*$')
+    var pat: string = '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%([-v]\+\|[-^]\+\)\s*$'
+    var lines: list<string> = split(@", "\n")
+        ->filter((_, v: string): bool => v !~ pat)
+
     if empty(lines)
         return
     endif
-    map(lines, (_, v) => substitute(v, '[✘✔┊].*', '', ''))
-    map(lines, (_, v) => substitute(v, '\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', ''))
+
     var initial_indent: number = matchstr(lines[0], '^\s*')->strlen()
-    # Why?{{{
-    #
-    # Here is the output of a sed command in the shell:
-    #
-    #     $ sed 's/\t/\
-    #     /2' <<<'Column1	Column2	Column3	Column4'
-    #     Column1	Column2~
-    #     Column3	Column4~
-    #
-    # Here is the output of the same command when sourced with our plugin:
-    #
-    #     $ sed 's/\t/\
-    #     /2' <<<'Column1	Column2	Column3	Column4'
-    #     Column1 Column2~
-    #         Column3     Column4~
-    #
-    # The indentation of the second line alters the output.
-    # We must remove it to get the same result as in the shell.
-    #}}}
-    # Warning:{{{
-    #
-    # This can alter the result of a heredoc assignment.
-    #
-    # MWE:
-    #
-    #         let a =<< END
-    #         xx
-    #     END
-    #     echo a
-    #
-    # If you run `:so%`, the output will be:
-    #
-    #     ['    xx']
-    #       ^--^
-    #
-    # If you press `+sip`, the output will be:
-    #
-    #     ['xx']
-    #
-    # In practice, I doubt it will be an issue because I think we'll always use `trim`:
-    #
-    #                   v--v
-    #         let a =<< trim END
-    #         xx
-    #     END
-    #     echo a
-    #}}}
-    map(lines, (_, v) => substitute(v, '^\s\{' .. initial_indent .. '}', '', ''))
+    lines
+        ->map((_, v: string): string => v
+            ->substitute('[✘✔┊].*', '', '')
+            ->substitute('\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
+            # Why?{{{
+            #
+            # Here is the output of a sed command in the shell:
+            #
+            #     $ sed 's/\t/\
+            #     /2' <<<'Column1	Column2	Column3	Column4'
+            #     Column1	Column2~
+            #     Column3	Column4~
+            #
+            # Here is the output of the same command when sourced with our plugin:
+            #
+            #     $ sed 's/\t/\
+            #     /2' <<<'Column1	Column2	Column3	Column4'
+            #     Column1 Column2~
+            #         Column3     Column4~
+            #
+            # The indentation of the second line alters the output.
+            # We must remove it to get the same result as in the shell.
+            #}}}
+            # Warning:{{{
+            #
+            # This can alter the result of a heredoc assignment.
+            #
+            # MWE:
+            #
+            #         let a =<< END
+            #         xx
+            #     END
+            #     echo a
+            #
+            # If you run `:so%`, the output will be:
+            #
+            #     ['    xx']
+            #       ^--^
+            #
+            # If you press `+sip`, the output will be:
+            #
+            #     ['xx']
+            #
+            # In practice,  I doubt it  will be an  issue because I  think we'll
+            # always use `trim`:
+            #
+            #                   v--v
+            #         let a =<< trim END
+            #         xx
+            #     END
+            #     echo a
+            #}}}
+            ->substitute(v, '^\s\{' .. initial_indent .. '}', '', '')
+            )
     if source_tempfile == ''
         sil! delete(source_tempfile)
         source_tempfile = ''
@@ -99,7 +109,7 @@ def source#opCore(type: string, verbosity = 0)
         return
     endif
 
-    # we're sourcing a vimL command
+    # we're sourcing a vimscript command
     try
         var cmd: string
         if type == 'Ex'
@@ -157,8 +167,10 @@ var source_tempfile: string
 def source#fixSelection() #{{{2
     var tempfile: string = tempname()
     var selection: list<string> = getreg('*', true, true)
-    map(selection, (_, v) => substitute(v, '^\C\s*com\%[mand]\s', 'command! ', ''))
-    map(selection, (_, v) => substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', ''))
+        ->map((_, v: string): string => v
+            ->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
+            ->substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', '')
+            )
     writefile(selection, tempfile)
     var star_save: dict<any> = getreginfo('*')
     setreg('*', {})
@@ -195,9 +207,9 @@ def source#range(lnum1: number, lnum2: number, verbosity: number) #{{{2
 enddef
 
 def IsInEmbeddedShellCodeBlock(): bool #{{{2
-    var synstack: list<string> = synstack('.', col('.'))
-        ->mapnew((_, v) => synIDattr(v, 'name'))
-    return get(synstack, 0, '') =~ '^markdownHighlightz\=sh$'
+    return synstack('.', col('.'))
+        ->mapnew((_, v: number): string => synIDattr(v, 'name'))
+        ->get(0, '') =~ '^markdownHighlightz\=sh$'
 enddef
 
 def source#fixShellCmd() #{{{2
