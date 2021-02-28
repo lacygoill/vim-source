@@ -22,16 +22,16 @@ com -bar -nargs=? -range SourceRange source#range(<line1>, <line2>, !empty(<q-ar
 
 # Mappings {{{1
 
-# Warning: `mode(1)` is `no` when sourcing code with the operator.{{{
+# Warning: `mode(true)` is `no` when sourcing code with the operator.{{{
 #
 # That's because, at that moment, you're really in operator-pending mode.
 #
 # MWE:
 #
-#     fu Func()
-#         echo mode(1)
-#     endfu
-#     call Func()
+#     def Func()
+#         echo mode(true)
+#     enddef
+#     Func()
 #
 # Write this in a file, and source it with `+S`:
 #

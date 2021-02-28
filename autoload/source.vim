@@ -81,7 +81,7 @@ def source#opCore(type: string, verbosity = 0)
             #     END
             #     echo a
             #}}}
-            ->substitute(v, '^\s\{' .. initial_indent .. '}', '', '')
+            ->substitute('^\s\{' .. initial_indent .. '}', '', '')
             )
     if source_tempfile == ''
         sil! delete(source_tempfile)
