@@ -21,73 +21,74 @@ def source#opCore(type: string, verbosity = 0)
 # Otherwise, the change marks would be unexpectedly reset.
 
     var pat: string = '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%([-v]\+\|[-^]\+\)\s*$'
-    var lines: list<string> = split(@", "\n")
+    var lines: list<string> = split(@", '\n')
         ->filter((_, v: string): bool => v !~ pat)
 
     if empty(lines)
         return
     endif
 
-    var initial_indent: number = matchstr(lines[0], '^\s*')->strlen()
-    lines
-        ->map((_, v: string): string => v
-            ->substitute('[✘✔┊].*', '', '')
-            ->substitute('\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
-            # Why?{{{
-            #
-            # Here is the output of a sed command in the shell:
-            #
-            #     $ sed 's/\t/\
-            #     /2' <<<'Column1	Column2	Column3	Column4'
-            #     Column1	Column2~
-            #     Column3	Column4~
-            #
-            # Here is the output of the same command when sourced with our plugin:
-            #
-            #     $ sed 's/\t/\
-            #     /2' <<<'Column1	Column2	Column3	Column4'
-            #     Column1 Column2~
-            #         Column3     Column4~
-            #
-            # The indentation of the second line alters the output.
-            # We must remove it to get the same result as in the shell.
-            #}}}
-            # Warning:{{{
-            #
-            # This can alter the result of a heredoc assignment.
-            #
-            # MWE:
-            #
-            #         let a =<< END
-            #         xx
-            #     END
-            #     echo a
-            #
-            # If you run `:so%`, the output will be:
-            #
-            #     ['    xx']
-            #       ^--^
-            #
-            # If you press `+sip`, the output will be:
-            #
-            #     ['xx']
-            #
-            # In practice,  I doubt it  will be an  issue because I  think we'll
-            # always use `trim`:
-            #
-            #                   v--v
-            #         let a =<< trim END
-            #         xx
-            #     END
-            #     echo a
-            #}}}
-            ->substitute('^\s\{' .. initial_indent .. '}', '', '')
-            )
     if source_tempfile == ''
         sil! delete(source_tempfile)
         source_tempfile = ''
     endif
     source_tempfile = tempname()
+
+    var initial_indent: number = lines[0]->matchstr('^\s*')->strlen()
+    lines
+        ->map((_, v: string): string =>
+            v->substitute('[✘✔┊].*', '', '')
+             ->substitute('\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
+             # Why?{{{
+             #
+             # Here is the output of a sed command in the shell:
+             #
+             #     $ sed 's/\t/\
+             #     /2' <<<'Column1	Column2	Column3	Column4'
+             #     Column1	Column2~
+             #     Column3	Column4~
+             #
+             # Here is the output of the same command when sourced with our plugin:
+             #
+             #     $ sed 's/\t/\
+             #     /2' <<<'Column1	Column2	Column3	Column4'
+             #     Column1 Column2~
+             #         Column3     Column4~
+             #
+             # The indentation of the second line alters the output.
+             # We must remove it to get the same result as in the shell.
+             #}}}
+             # Warning:{{{
+             #
+             # This can alter the result of a heredoc assignment.
+             #
+             # MWE:
+             #
+             #         let a =<< END
+             #         xx
+             #     END
+             #     echo a
+             #
+             # If you run `:so%`, the output will be:
+             #
+             #     ['    xx']
+             #       ^--^
+             #
+             # If you press `+sip`, the output will be:
+             #
+             #     ['xx']
+             #
+             # In practice,  I doubt it will  be an issue because  I think we'll
+             # always use `trim`:
+             #
+             #                   v--v
+             #         let a =<< trim END
+             #         xx
+             #     END
+             #     echo a
+             #}}}
+             ->substitute('^\s\{' .. initial_indent .. '}', '', ''))
+
     writefile([''] + lines, source_tempfile, 'b')
 
     # we're sourcing a shell command
@@ -152,7 +153,7 @@ def source#opCore(type: string, verbosity = 0)
             getline('.')->histadd(':')
         endif
     catch
-        setreg('o', [substitute(v:exception, '^Vim(.\{-}):', '', '')], 'c')
+        setreg('o', [v:exception->substitute('^Vim(.\{-}):', '', '')], 'c')
         Catch()
         return
     finally
@@ -166,12 +167,12 @@ var source_tempfile: string
 
 def source#fixSelection() #{{{2
     var tempfile: string = tempname()
-    var selection: list<string> = getreg('*', true, true)
-        ->map((_, v: string): string => v
-            ->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
-            ->substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', '')
-            )
-    writefile(selection, tempfile)
+    getreg('*', true, true)
+        ->map((_, v: string): string =>
+                v->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
+                 ->substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', ''))
+        ->writefile(tempfile)
+
     var star_save: dict<any> = getreginfo('*')
     setreg('*', {})
     timer_start(0, function(Sourcethis, [tempfile, star_save]))
