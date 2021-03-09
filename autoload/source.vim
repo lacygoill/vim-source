@@ -34,7 +34,7 @@ def source#opCore(type: string, verbosity = 0)
     endif
     source_tempfile = tempname()
 
-    var initial_indent: number = lines[0]->matchstr('^\s*')->strlen()
+    var initial_indent: number = lines[0]->matchstr('^\s*')->strchars(true)
     lines
         ->map((_, v: string): string =>
             v->substitute('[✘✔┊].*', '', '')
