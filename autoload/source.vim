@@ -6,7 +6,7 @@ var loaded = true
 import {
     Catch,
     Opfunc,
-    } from 'lg.vim'
+} from 'lg.vim'
 const SID: string = execute('fu Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
 
 # Interface {{{1
@@ -170,7 +170,7 @@ def source#fixSelection() #{{{2
     getreg('*', true, true)
         ->map((_, v: string): string =>
                 v->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
-                 ->substitute(v, '^\C\s*fu\%[nction]\s', 'function! ', ''))
+                 ->substitute('^\C\s*fu\%[nction]\s', 'function! ', ''))
         ->writefile(tempfile)
 
     var star_save: dict<any> = getreginfo('*')
@@ -178,7 +178,11 @@ def source#fixSelection() #{{{2
     timer_start(0, function(Sourcethis, [tempfile, star_save]))
 enddef
 
-def Sourcethis(tempfile: string, star_save: dict<any>, _: any)
+def Sourcethis(
+    tempfile: string,
+    star_save: dict<any>,
+    _
+)
     try
         exe 'so ' .. tempfile
     catch
@@ -191,7 +195,11 @@ def Sourcethis(tempfile: string, star_save: dict<any>, _: any)
 enddef
 #}}}1
 # Core {{{1
-def source#range(lnum1: number, lnum2: number, verbosity: number) #{{{2
+def source#range( #{{{2
+    lnum1: number,
+    lnum2: number,
+    verbosity: number
+)
     var reginfo: dict<any> = getreginfo('"')
     var cb_save: string = &cb
     try
