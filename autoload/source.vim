@@ -9,14 +9,46 @@ import {
 } from 'lg.vim'
 const SID: string = execute('fu Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
 
+var source_tempfile: string
+
 # Interface {{{1
 def source#op(): string #{{{2
     &opfunc = SID .. 'Opfunc'
-    g:opfunc = {core: 'source#opCore'}
+    g:opfunc = {core: Source}
     return 'g@'
 enddef
 
-def source#opCore(type: string, verbosity = 0)
+def source#fixSelection() #{{{2
+    var tempfile: string = tempname()
+    getreg('*', true, true)
+        ->map((_, v: string): string =>
+                v->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
+                 ->substitute('^\C\s*fu\%[nction]\s', 'function! ', ''))
+        ->writefile(tempfile)
+
+    var star_save: dict<any> = getreginfo('*')
+    setreg('*', {})
+    timer_start(0, function(Sourcethis, [tempfile, star_save]))
+enddef
+
+def Sourcethis(
+    tempfile: string,
+    star_save: dict<any>,
+    _
+)
+    try
+        exe 'so ' .. tempfile
+    catch
+        echohl ErrorMsg
+        echom v:exception
+        echohl NONE
+    finally
+        setreg('*', star_save)
+    endtry
+enddef
+#}}}1
+# Core {{{1
+def Source(type: string, verbosity = 0)
 # Warning: If you run `:update`, don't forget `:lockm`.
 # Otherwise, the change marks would be unexpectedly reset.
 
@@ -92,7 +124,7 @@ def source#opCore(type: string, verbosity = 0)
     writefile([''] + lines, source_tempfile, 'b')
 
     # we're sourcing a shell command
-    var prompt: string = matchstr(lines[0], '^\s*\zs[$%]\ze\s')
+    var prompt: string = lines[0]->matchstr('^\s*\zs[$%]\ze\s')
     if prompt != '' || IsInEmbeddedShellCodeBlock()
         exe 'sp ' .. source_tempfile
         source#fixShellCmd()
@@ -163,38 +195,6 @@ def source#opCore(type: string, verbosity = 0)
     endtry
 enddef
 
-var source_tempfile: string
-
-def source#fixSelection() #{{{2
-    var tempfile: string = tempname()
-    getreg('*', true, true)
-        ->map((_, v: string): string =>
-                v->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
-                 ->substitute('^\C\s*fu\%[nction]\s', 'function! ', ''))
-        ->writefile(tempfile)
-
-    var star_save: dict<any> = getreginfo('*')
-    setreg('*', {})
-    timer_start(0, function(Sourcethis, [tempfile, star_save]))
-enddef
-
-def Sourcethis(
-    tempfile: string,
-    star_save: dict<any>,
-    _
-)
-    try
-        exe 'so ' .. tempfile
-    catch
-        echohl ErrorMsg
-        echom v:exception
-        echohl NONE
-    finally
-        setreg('*', star_save)
-    endtry
-enddef
-#}}}1
-# Core {{{1
 def source#range( #{{{2
     lnum1: number,
     lnum2: number,
@@ -205,7 +205,7 @@ def source#range( #{{{2
     try
         set cb=
         exe ':' .. lnum1 .. ',' .. lnum2 .. 'y'
-        source#opCore('Ex', verbosity)
+        Source('Ex', verbosity)
     catch
         Catch()
         return
@@ -236,12 +236,12 @@ def source#fixShellCmd() #{{{2
     pat = '\C^\%(\s*EOF\)\n\='
     lnum = search(pat)
     var line: string = getline(lnum)
-    var indent: string = matchstr(line, '^\s*')
+    var indent: string = line->matchstr('^\s*')
     var range: string = ':1/<<.*EOF/;/^\s*EOF/'
-    var mods: string = 'keepj keepp '
+    var mods: string = 'sil keepj keepp '
     if !empty(indent)
-        sil exe mods .. range .. 's/^' .. indent .. '//e'
-        sil exe mods .. ':'']+s/^' .. indent .. ')/)/e'
+        exe mods .. range .. 's/^' .. indent .. '//e'
+        exe mods .. ':'']+s/^' .. indent .. ')/)/e'
     endif
 
     # Remove empty lines at the top of the buffer.{{{
