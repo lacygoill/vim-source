@@ -77,15 +77,15 @@ def Source(type: string, verbosity = 0)
              #
              #     $ sed 's/\t/\
              #     /2' <<<'Column1	Column2	Column3	Column4'
-             #     Column1	Column2~
-             #     Column3	Column4~
+             #     Column1	Column2˜
+             #     Column3	Column4˜
              #
              # Here is the output of the same command when sourced with our plugin:
              #
              #     $ sed 's/\t/\
              #     /2' <<<'Column1	Column2	Column3	Column4'
-             #     Column1 Column2~
-             #         Column3     Column4~
+             #     Column1 Column2˜
+             #         Column3     Column4˜
              #
              # The indentation of the second line alters the output.
              # We must remove it to get the same result as in the shell.
@@ -172,11 +172,11 @@ def Source(type: string, verbosity = 0)
         #     var list: list<number> = range(1, 4)
         #     add(list, remove(list, 0))
         #     echo list
-        #     [3, 4, 1, 2]~
+        #     [3, 4, 1, 2]˜
         #
         # Here, the output should be:
         #
-        #     [4, 1, 2, 3]~
+        #     [4, 1, 2, 3]˜
         #}}}
 
         # Add the current  line to the history  to be able to  insert its output
@@ -267,7 +267,7 @@ def source#fixShellCmd() #{{{2
     # Vim keeps undoing new changes indefinitely.
     #
     #     :echo undotree()
-    #     E724: variable nested too deep for displaying~
+    #     E724: variable nested too deep for displaying˜
     #
     # MWE:
     #

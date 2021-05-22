@@ -35,11 +35,11 @@ com -bar -nargs=? -range SourceRange source#range(<line1>, <line2>, !empty(<q-ar
 #
 # Write this in a file, and source it with `+S`:
 #
-#     n~
+#     n˜
 #
 # Now, source it again with `+sip`:
 #
-#     no~
+#     no˜
 #}}}
 
 # FIXME: `+s` is unable to print 2 or more messages; only the last one is kept:{{{
