@@ -170,7 +170,7 @@ def Source(type: string, verbosity = 0)
         # MWE:
         #
         #     var list: list<number> = range(1, 4)
-        #     add(list, remove(list, 0))
+        #     list->add(remove(list, 0))
         #     echo list
         #     [3, 4, 1, 2]˜
         #
