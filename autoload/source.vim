@@ -5,6 +5,7 @@ var loaded = true
 
 import {
     Catch,
+    IsVim9,
     Opfunc,
 } from 'lg.vim'
 const SID: string = execute('fu Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
@@ -52,12 +53,21 @@ def Source(type: string, verbosity = 0)
 # Warning: If you run `:update`, don't forget `:lockm`.
 # Otherwise, the change marks would be unexpectedly reset.
 
-    var pat: string = '\~$\|[⇔→]\|^\s*[│─└┘┌┐]\|^[↣↢]\|^\s*\%([-v]\+\|[-^]\+\)\s*$'
-    var lines: list<string> = split(@", '\n')
-        ->filter((_, v: string): bool => v !~ pat)
+    var to_ignore: string = '˜$'
+        .. '\|' .. '[⇔→]'
+        .. '\|' .. '^\s*[│─└┘┌┐]'
+        .. '\|' .. '^[↣↢]'
+        .. '\|' .. '^\s*\%([-v]\+\|[-^]\+\)\s*$'
+    var lines: list<string> = getreg('"')
+        ->split('\n')
+        ->filter((_, v: string): bool => v !~ to_ignore)
 
     if empty(lines)
         return
+    endif
+
+    if IsVim9()
+        lines = ['vim9script'] + lines
     endif
 
     if source_tempfile == ''
@@ -66,11 +76,13 @@ def Source(type: string, verbosity = 0)
     endif
     source_tempfile = tempname()
 
-    var initial_indent: number = lines[0]->matchstr('^\s*')->strcharlen()
+    var initial_indent: number = lines[0]
+        ->matchstr('^\s*')
+        ->strcharlen()
     lines
         ->map((_, v: string): string =>
             v->substitute('[✘✔┊].*', '', '')
-             ->substitute('\C^\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
+             ->substitute('^\C\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
              # Why?{{{
              #
              # Here is the output of a sed command in the shell:
@@ -129,15 +141,15 @@ def Source(type: string, verbosity = 0)
         exe 'sp ' .. source_tempfile
         source#fixShellCmd()
         q
+        var interpreter: string = 'bash'
         if prompt != ''
-            sil setreg('o', systemlist({
+            interpreter = {
                 '$': 'bash',
                 '%': 'zsh'
-                }[prompt]
-                .. ' ' .. source_tempfile), 'c')
-        else
-            sil setreg('o', systemlist('bash ' .. source_tempfile), 'c')
+            }[prompt]
         endif
+        sil systemlist(interpreter .. ' ' .. source_tempfile)
+            ->setreg('o', 'c')
         echo @o
         return
     endif
@@ -228,8 +240,9 @@ def source#fixShellCmd() #{{{2
     var pat: string = '^\%(\s*\n\)*\s*\zs[$%]\s\+'
     var lnum: number = search(pat)
     if lnum > 0
-        var text: string = getline(lnum)->substitute('^\s*\zs[$%]\s\+', '', '')
-        setline(lnum, text)
+        getline(lnum)
+            ->substitute('^\s*\zs[$%]\s\+', '', '')
+            ->setline(lnum)
     endif
 
     # remove possible indentation in front of `EOF`
