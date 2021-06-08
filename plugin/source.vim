@@ -47,8 +47,9 @@ com -bar -nargs=? -range SourceRange source#range(<line1>, <line2>, !empty(<q-ar
 #     " uncomment the next line, and press `+ss`
 #     echo 'foo' | echo 'bar'
 #
-# It seems impossible to echo several messages from an opfunc (or an autocmd, or a timer...).
-# For more info, read our notes about mappings, and: https://github.com/lervag/vimtex/pull/1247
+# It seems impossible to echo several  messages from an operator function (or an
+# autocmd, or a timer...).  For more info, read our notes about mappings, and:
+# https://github.com/lervag/vimtex/pull/1247
 #}}}
 nno <unique> +S <cmd>sil! update<bar>source %<cr>
 nno <expr><unique> +s source#op()

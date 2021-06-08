@@ -14,8 +14,8 @@ var source_tempfile: string
 
 # Interface {{{1
 def source#op(): string #{{{2
-    &opfunc = SID .. 'Opfunc'
-    g:opfunc = {core: Source}
+    &operatorfunc = SID .. 'Opfunc'
+    g:operatorfunc = {core: Source}
     return 'g@'
 enddef
 
@@ -182,7 +182,7 @@ def Source(type: string, verbosity = 0)
         # MWE:
         #
         #     var list: list<number> = range(1, 4)
-        #     list->add(remove(list, 0))
+        #     list->add(list->remove(0))
         #     echo list
         #     [3, 4, 1, 2]˜
         #
@@ -213,16 +213,16 @@ def source#range( #{{{2
     verbosity: number
 )
     var reginfo: dict<any> = getreginfo('"')
-    var cb_save: string = &cb
+    var clipboard_save: string = &clipboard
     try
-        set cb=
+        &clipboard = ''
         exe ':' .. lnum1 .. ',' .. lnum2 .. 'y'
         Source('Ex', verbosity)
     catch
         Catch()
         return
     finally
-        &cb = cb_save
+        &clipboard = clipboard_save
         setreg('"', reginfo)
     endtry
 enddef
@@ -316,8 +316,8 @@ def FixShellcmd()
         win_gotoid(winids[0])
     endif
     # remove empty lines at the top
-    if getline(1) =~ '^\s*$'
-        sil! keepj keepp :1;/\S/-d _
+    if getline(1) !~ '\S'
+        sil! keepj keepp :1;/\S/- d _
         update
     endif
 enddef
