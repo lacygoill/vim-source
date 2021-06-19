@@ -158,10 +158,6 @@ def Source(type: string, verbosity = 0)
     try
         var cmd: string
         if type == 'Ex'
-            if exists(':ToggleEditingCommands') == 2
-                ToggleEditingCommands 0
-            endif
-
             cmd = verbosity .. 'verb source ' .. source_tempfile
 
         # the function was invoked via the mapping
@@ -200,10 +196,6 @@ def Source(type: string, verbosity = 0)
         setreg('o', [v:exception->substitute('^Vim(.\{-}):', '', '')], 'c')
         Catch()
         return
-    finally
-        if type == 'Ex' && exists(':ToggleEditingCommands') == 2
-            ToggleEditingCommands 1
-        endif
     endtry
 enddef
 
