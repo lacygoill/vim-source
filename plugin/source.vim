@@ -7,18 +7,19 @@ var loaded = true
 
 # If  you try  to source  some code  visually  selected in  a buffer  or in  the
 # web  browser, by  executing  `@*` on  the  command-line,  and  if it  contains
-# continuation lines, `<sid>` or `s:`, it will fail.
+# continuation lines, `<SID>` or `s:`, it will fail.
 #
 # To fix this, we write the selection in a file and source the latter.
-augroup FixSourceSelection | au!
-    au CmdlineLeave : if getcmdline() == '@*'
+augroup FixSourceSelection | autocmd!
+    autocmd CmdlineLeave : if getcmdline() == '@*'
         |     source#fixSelection()
         | endif
 augroup END
 
 # Command {{{1
 
-com -bar -nargs=? -range SourceRange source#range(<line1>, <line2>, !empty(<q-args>) ? str2nr(<q-args>) : 0)
+command -bar -nargs=? -range
+    \ SourceRange source#range(<line1>, <line2>, !empty(<q-args>) ? str2nr(<q-args>) : 0)
 
 # Mappings {{{1
 
@@ -51,10 +52,10 @@ com -bar -nargs=? -range SourceRange source#range(<line1>, <line2>, !empty(<q-ar
 # autocmd, or a timer...).  For more info, read our notes about mappings, and:
 # https://github.com/lervag/vimtex/pull/1247
 #}}}
-nno <unique> +S <cmd>sil! update<bar>source %<cr>
-nno <expr><unique> +s source#op()
-xno <expr><unique> +s source#op()
-nno <expr><unique> +ss source#op() .. '_'
+nnoremap <unique> +S <Cmd>silent! update <Bar> source %<CR>
+nnoremap <expr><unique> +s source#op()
+xnoremap <expr><unique> +s source#op()
+nnoremap <expr><unique> +ss source#op() .. '_'
 
 # Typo: Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
 nmap +[ +s

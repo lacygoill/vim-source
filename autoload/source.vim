@@ -8,7 +8,7 @@ import {
     IsVim9,
     Opfunc,
 } from 'lg.vim'
-const SID: string = execute('fu Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
+const SID: string = execute('function Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
 
 var source_tempfile: string
 
@@ -38,10 +38,10 @@ def Sourcethis(
     _
 )
     try
-        exe 'so ' .. tempfile
+        execute 'source ' .. tempfile
     catch
         echohl ErrorMsg
-        echom v:exception
+        echomsg v:exception
         echohl NONE
     finally
         setreg('*', star_save)
@@ -50,7 +50,7 @@ enddef
 #}}}1
 # Core {{{1
 def Source(type: string, verbosity = 0)
-# Warning: If you run `:update`, don't forget `:lockm`.
+# Warning: If you run `:update`, don't forget `:lockmarks`.
 # Otherwise, the change marks would be unexpectedly reset.
 
     var to_ignore: string = '˜$'
@@ -71,7 +71,7 @@ def Source(type: string, verbosity = 0)
     endif
 
     if source_tempfile == ''
-        sil! delete(source_tempfile)
+        silent! delete(source_tempfile)
         source_tempfile = ''
     endif
     source_tempfile = tempname()
@@ -113,7 +113,7 @@ def Source(type: string, verbosity = 0)
              #     END
              #     echo a
              #
-             # If you run `:so%`, the output will be:
+             # If you run `:source %`, the output will be:
              #
              #     ['    xx']
              #       ^--^
@@ -138,9 +138,9 @@ def Source(type: string, verbosity = 0)
     # we're sourcing a shell command
     var prompt: string = lines[0]->matchstr('^\s*\zs[$%]\ze\s')
     if prompt != '' || IsInEmbeddedShellCodeBlock()
-        exe 'sp ' .. source_tempfile
+        execute 'split ' .. source_tempfile
         source#fixShellCmd()
-        q
+        quit
         var interpreter: string = 'bash'
         if prompt != ''
             interpreter = {
@@ -148,7 +148,7 @@ def Source(type: string, verbosity = 0)
                 '%': 'zsh'
             }[prompt]
         endif
-        sil systemlist(interpreter .. ' ' .. source_tempfile)
+        silent systemlist(interpreter .. ' ' .. source_tempfile)
             ->setreg('o', 'c')
         echo @o
         return
@@ -158,7 +158,7 @@ def Source(type: string, verbosity = 0)
     try
         var cmd: string
         if type == 'Ex'
-            cmd = verbosity .. 'verb source ' .. source_tempfile
+            cmd = verbosity .. 'verbose source ' .. source_tempfile
 
         # the function was invoked via the mapping
         else
@@ -166,12 +166,12 @@ def Source(type: string, verbosity = 0)
         endif
 
         # Flush any delayed screen updates before running `cmd`.
-        # See `:h :echo-redraw`.
+        # See `:help :echo-redraw`.
         redraw
         # save the output  in register `o` so we can  directly paste it wherever
         # we want; but remove the first newline before
         setreg('o', [execute(cmd, '')[1 :]], 'c')
-        # Don't run `:exe cmd`!{{{
+        # Don't run `:execute cmd`!{{{
         #
         # If you do, the code will be run twice (because you've just run `execute()`).
         # But if the code is not idempotent, the printed result may seem unexpected.
@@ -208,7 +208,7 @@ def source#range( #{{{2
     var clipboard_save: string = &clipboard
     try
         &clipboard = ''
-        exe ':' .. lnum1 .. ',' .. lnum2 .. 'y'
+        execute ':' .. lnum1 .. ',' .. lnum2 .. 'yank'
         Source('Ex', verbosity)
     catch
         Catch()
@@ -243,10 +243,10 @@ def source#fixShellCmd() #{{{2
     var line: string = getline(lnum)
     var indent: string = line->matchstr('^\s*')
     var range: string = ':1/<<.*EOF/;/^\s*EOF/'
-    var mods: string = 'sil keepj keepp '
+    var mods: string = 'silent keepjumps keeppatterns '
     if !empty(indent)
-        exe mods .. range .. 's/^' .. indent .. '//e'
-        exe mods .. ':'']+s/^' .. indent .. ')/)/e'
+        execute mods .. range .. 'substitute/^' .. indent .. '//e'
+        execute mods .. ':'']+1 substitute/^' .. indent .. ')/)/e'
     endif
 
     # Remove empty lines at the top of the buffer.{{{
@@ -276,21 +276,20 @@ def source#fixShellCmd() #{{{2
     #
     # MWE:
     #
-    #     $ vim -Nu NONE \
-    #       +'ino <c-m> <c-g>u<cr>' \
-    #       +'let &t_PE = "\e[201~"' \
-    #       +'au TextChanged * 1;/\S/-d' \
-    #       +'let @+ = "\n\x1b[201~\\n\n"' \
-    #       +startinsert
+    #       inoremap <C-M> <C-G>u<CR>
+    #       let &t_PE = "\<Esc>[201~"
+    #       autocmd TextChanged * 1;/\S/-d
+    #       let @+ = "\n\x1b[201~\\n\n"
+    #       startinsert
     #
-    #     " press:  C-S-v Esc u u u ...
+    #       " press:  C-S-v Esc u u u ...
     #
     # To  avoid  this,   we  delay  the  deletion  until  we   leave  Vim  (yes,
     # `BufWinLeave` is fired when we leave Vim; but not `WinLeave`).
     #}}}
     if !exists('#FixShellcmd') # no need to re-install the autocmd on every `TextChanged` or `InsertLeave`
-        augroup FixShellcmd | au!
-            au BufWinLeave <buffer> ++once FixShellcmd()
+        augroup FixShellcmd | autocmd!
+            autocmd BufWinLeave <buffer> ++once FixShellcmd()
         augroup END
     endif
 
@@ -303,13 +302,13 @@ def FixShellcmd()
     winids = win_findbuf(abuf)
     # make sure we're in its window
     if empty(winids)
-        exe 'b ' .. abuf
+        execute 'buffer ' .. abuf
     else
         win_gotoid(winids[0])
     endif
     # remove empty lines at the top
     if getline(1) !~ '\S'
-        sil! keepj keepp :1;/\S/- d _
+        silent! keepjumps keeppatterns :1;/\S/-1 delete _
         update
     endif
 enddef
