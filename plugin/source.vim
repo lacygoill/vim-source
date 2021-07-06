@@ -45,7 +45,7 @@ command -bar -nargs=? -range
 
 # FIXME: `+s` is unable to print 2 or more messages; only the last one is kept:{{{
 #
-#     " uncomment the next line, and press `+ss`
+#     # uncomment the next line, and press `+ss`
 #     echo 'foo' | echo 'bar'
 #
 # It seems impossible to echo several  messages from an operator function (or an
@@ -58,5 +58,5 @@ xnoremap <expr><unique> +s source#op()
 nnoremap <expr><unique> +ss source#op() .. '_'
 
 # Typo: Sometimes I don't release AlgGr fast enough, so instead of pressing `+s`, I press `+[`.
-nmap +[ +s
+nmap <unique> +[ +s
 

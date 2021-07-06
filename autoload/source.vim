@@ -1,11 +1,7 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 import {
     Catch,
-    IsVim9,
     Opfunc,
 } from 'lg.vim'
 const SID: string = execute('function Opfunc')->matchstr('\C\<def\s\+\zs<SNR>\d\+_')
@@ -22,7 +18,7 @@ enddef
 def source#fixSelection() #{{{2
     var tempfile: string = tempname()
     getreg('*', true, true)
-        ->map((_, v: string): string =>
+        ->map((_, v: string) =>
                 v->substitute('^\C\s*com\%[mand]\s', 'command! ', '')
                  ->substitute('^\C\s*fu\%[nction]\s', 'function! ', ''))
         ->writefile(tempfile)
@@ -66,7 +62,7 @@ def Source(type: string, verbosity = 0)
         return
     endif
 
-    if IsVim9()
+    if &filetype == 'vim'
         lines = ['vim9script'] + lines
     endif
 
@@ -80,7 +76,7 @@ def Source(type: string, verbosity = 0)
         ->matchstr('^\s*')
         ->strcharlen()
     lines
-        ->map((_, v: string): string =>
+        ->map((_, v: string) =>
             v->substitute('[✘✔┊].*', '', '')
              ->substitute('^\C\s*\%(fu\%[nction]\|com\%[mand]\)\zs\ze\s', '!', '')
              # Why?{{{
@@ -252,12 +248,12 @@ def source#fixShellCmd() #{{{2
     # Remove empty lines at the top of the buffer.{{{
     #
     #     $ C-x C-e
-    #     " press `o` to open a new line
-    #     " insert `ls`
-    #     " press `Esc` and `ZZ`
+    #     # press `o` to open a new line
+    #     # insert `ls`
+    #     # press `Esc` and `ZZ`
     #     # press Enter to run the command
     #     # press `M-c` to capture the pane contents via the capture-pane command from tmux
-    #     " notice how `ls(1)` is not visible in the quickfix window
+    #     # notice how `ls(1)` is not visible in the quickfix window
     #}}}
     # Why the autocmd?{{{
     #
@@ -266,8 +262,8 @@ def source#fixShellCmd() #{{{2
     #     :let @+ = "\n\x1b[201~\\n\n"
     #     # start a terminal other than xterm
     #     # press C-x C-e
-    #     " enter insert mode and press C-S-v
-    #     " keep pressing undo
+    #     # enter insert mode and press C-S-v
+    #     # keep pressing undo
     #
     # Vim keeps undoing new changes indefinitely.
     #
@@ -282,7 +278,7 @@ def source#fixShellCmd() #{{{2
     #       let @+ = "\n\x1b[201~\\n\n"
     #       startinsert
     #
-    #       " press:  C-S-v Esc u u u ...
+    #       # press:  C-S-v Esc u u u ...
     #
     # To  avoid  this,   we  delay  the  deletion  until  we   leave  Vim  (yes,
     # `BufWinLeave` is fired when we leave Vim; but not `WinLeave`).
