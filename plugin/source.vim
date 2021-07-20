@@ -49,8 +49,7 @@ command -bar -nargs=? -range
 #     echo 'foo' | echo 'bar'
 #
 # It seems impossible to echo several  messages from an operator function (or an
-# autocmd, or a timer...).  For more info, read our notes about mappings, and:
-# https://github.com/lervag/vimtex/pull/1247
+# autocmd, or a timer...).  For more info, read our notes about mappings.
 #}}}
 nnoremap <unique> +S <Cmd>silent! update <Bar> source %<CR>
 nnoremap <expr><unique> +s source#op()
